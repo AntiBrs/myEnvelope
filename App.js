@@ -10,7 +10,7 @@ import LoginScreen from './screens/LoginScreen';
 
 const Stack = createStackNavigator();
 
-export default function App() {
+export default function App() {//kezdetleges
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
