@@ -15,10 +15,6 @@
 
 A felvétel bemutatja a bejelentkezést, a tranzakciórögzítést, a nyugtaolvasást, a statisztikákat, a havi tervezést, a terv–tény–predikció összehasonlítást és a Státi asszisztenst.
 
-<video src="docs/assets/demo.mp4" controls width="820" title="myEnvelope alkalmazásdemó"></video>
-
-[![A myEnvelope demóvideó megnyitása](docs/assets/demo-cover.png)](docs/assets/demo.mp4)
-
 Ha a GitHub-kliens nem jeleníti meg a beágyazott lejátszót: **[▶ MP4-demó megnyitása](docs/assets/demo.mp4)**.
 
 > A repó nem tartalmaz éles hitelesítő adatokat vagy valódi pénzügyi rekordokat. A demóban tesztadatok láthatók.
