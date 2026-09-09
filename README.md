@@ -15,7 +15,6 @@
 
 The recording walks through authentication, transaction entry, receipt scanning, statistics, monthly planning, forecast comparison, and the Státi assistant.
 
-<video src="docs/assets/demo.mp4" controls width="820" title="myEnvelope application demo"></video>
 
 [![Open the myEnvelope demo video](docs/assets/demo-cover.png)](docs/assets/demo.mp4)
 
