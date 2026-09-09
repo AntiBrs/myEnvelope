@@ -1,0 +1,1251 @@
+﻿keyword,priority,category,subcategory
+milk,85,Food,Groceries
+milks,80,Food,Groceries
+MILK,85,Food,Groceries
+bread,95,Food,Groceries
+breads,90,Food,Groceries
+BREAD,95,Food,Groceries
+eggs,85,Food,Groceries
+eggss,80,Food,Groceries
+EGGS,85,Food,Groceries
+cheese,95,Food,Groceries
+cheeses,90,Food,Groceries
+CHEESE,95,Food,Groceries
+butter,95,Food,Groceries
+butters,90,Food,Groceries
+BUTTER,95,Food,Groceries
+iaurt,95,Food,Groceries
+iaurts,90,Food,Groceries
+IAURT,95,Food,Groceries
+lapte,95,Food,Groceries
+laptes,90,Food,Groceries
+LAPTE,95,Food,Groceries
+paine,95,Food,Groceries
+paines,90,Food,Groceries
+PAINE,95,Food,Groceries
+oua,85,Food,Groceries
+ouas,80,Food,Groceries
+OUA,85,Food,Groceries
+branza,95,Food,Groceries
+branzas,90,Food,Groceries
+BRANZA,95,Food,Groceries
+unt,85,Food,Groceries
+unts,80,Food,Groceries
+UNT,85,Food,Groceries
+fruits,95,Food,Groceries
+fruitss,90,Food,Groceries
+FRUITS,95,Food,Groceries
+vegetables,95,Food,Groceries
+vegetabless,90,Food,Groceries
+VEGETABLES,95,Food,Groceries
+mere,85,Food,Groceries
+meres,80,Food,Groceries
+MERE,85,Food,Groceries
+banane,95,Food,Groceries
+bananes,90,Food,Groceries
+BANANE,95,Food,Groceries
+rosii,95,Food,Groceries
+rosiis,90,Food,Groceries
+ROSII,95,Food,Groceries
+cartofi,95,Food,Groceries
+cartofis,90,Food,Groceries
+CARTOFI,95,Food,Groceries
+orez,85,Food,Groceries
+orezs,80,Food,Groceries
+OREZ,85,Food,Groceries
+rice,85,Food,Groceries
+rices,80,Food,Groceries
+RICE,85,Food,Groceries
+pasta,95,Food,Groceries
+pastas,90,Food,Groceries
+PASTA,95,Food,Groceries
+faina,95,Food,Groceries
+fainas,90,Food,Groceries
+FAINA,95,Food,Groceries
+zahar,95,Food,Groceries
+zahars,90,Food,Groceries
+ZAHAR,95,Food,Groceries
+sugar,95,Food,Groceries
+sugars,90,Food,Groceries
+SUGAR,95,Food,Groceries
+salt,85,Food,Groceries
+salts,80,Food,Groceries
+SALT,85,Food,Groceries
+coffee,95,Food,Groceries
+coffees,90,Food,Groceries
+COFFEE,95,Food,Groceries
+cafea,95,Food,Groceries
+cafeas,90,Food,Groceries
+CAFEA,95,Food,Groceries
+tea,85,Food,Groceries
+teas,80,Food,Groceries
+TEA,85,Food,Groceries
+ceai,85,Food,Groceries
+ceais,80,Food,Groceries
+CEAI,85,Food,Groceries
+water,95,Food,Groceries
+waters,90,Food,Groceries
+WATER,95,Food,Groceries
+apa,85,Food,Groceries
+apas,80,Food,Groceries
+APA,85,Food,Groceries
+juice,95,Food,Groceries
+juices,90,Food,Groceries
+JUICE,95,Food,Groceries
+suc,85,Food,Groceries
+sucs,80,Food,Groceries
+SUC,85,Food,Groceries
+meat,85,Food,Groceries
+meats,80,Food,Groceries
+MEAT,85,Food,Groceries
+carne,95,Food,Groceries
+carnes,90,Food,Groceries
+CARNE,95,Food,Groceries
+chicken,95,Food,Groceries
+chickens,90,Food,Groceries
+CHICKEN,95,Food,Groceries
+pui,85,Food,Groceries
+puis,80,Food,Groceries
+PUI,85,Food,Groceries
+beef,85,Food,Groceries
+beefs,80,Food,Groceries
+BEEF,85,Food,Groceries
+vita,85,Food,Groceries
+vitas,80,Food,Groceries
+VITA,85,Food,Groceries
+fish,85,Food,Groceries
+fishs,80,Food,Groceries
+FISH,85,Food,Groceries
+peste,95,Food,Groceries
+pestes,90,Food,Groceries
+PESTE,95,Food,Groceries
+restaurant,95,Food,Restaurants
+restaurants,90,Food,Restaurants
+RESTAURANT,95,Food,Restaurants
+pizza,95,Food,Restaurants
+pizzas,90,Food,Restaurants
+PIZZA,95,Food,Restaurants
+burger,95,Food,Restaurants
+burgers,90,Food,Restaurants
+BURGER,95,Food,Restaurants
+menu,85,Food,Restaurants
+menus,80,Food,Restaurants
+MENU,85,Food,Restaurants
+meniul,95,Food,Restaurants
+meniuls,90,Food,Restaurants
+MENIUL,95,Food,Restaurants
+dine,85,Food,Restaurants
+dines,80,Food,Restaurants
+DINE,85,Food,Restaurants
+bistro,95,Food,Restaurants
+bistros,90,Food,Restaurants
+BISTRO,95,Food,Restaurants
+grill,95,Food,Restaurants
+grills,90,Food,Restaurants
+GRILL,95,Food,Restaurants
+steak,95,Food,Restaurants
+steaks,90,Food,Restaurants
+STEAK,95,Food,Restaurants
+sushi,95,Food,Restaurants
+sushis,90,Food,Restaurants
+SUSHI,95,Food,Restaurants
+pasta,95,Food,Restaurants
+pastas,90,Food,Restaurants
+PASTA,95,Food,Restaurants
+cafe,85,Food,Restaurants
+cafes,80,Food,Restaurants
+CAFE,85,Food,Restaurants
+pub,85,Food,Restaurants
+pubs,80,Food,Restaurants
+PUB,85,Food,Restaurants
+brunch,95,Food,Restaurants
+brunchs,90,Food,Restaurants
+BRUNCH,95,Food,Restaurants
+lunch,95,Food,Restaurants
+lunchs,90,Food,Restaurants
+LUNCH,95,Food,Restaurants
+dinner,95,Food,Restaurants
+dinners,90,Food,Restaurants
+DINNER,95,Food,Restaurants
+takeaway,95,Food,Takeaway
+takeaways,90,Food,Takeaway
+TAKEAWAY,95,Food,Takeaway
+delivery,95,Food,Takeaway
+deliverys,90,Food,Takeaway
+DELIVERY,95,Food,Takeaway
+glovo,95,Food,Takeaway
+glovos,90,Food,Takeaway
+GLOVO,95,Food,Takeaway
+tazz,85,Food,Takeaway
+tazzs,80,Food,Takeaway
+TAZZ,85,Food,Takeaway
+bolt food,95,Food,Takeaway
+foodpanda,95,Food,Takeaway
+foodpandas,90,Food,Takeaway
+FOODPANDA,95,Food,Takeaway
+comanda,95,Food,Takeaway
+comandas,90,Food,Takeaway
+COMANDA,95,Food,Takeaway
+livrare,95,Food,Takeaway
+livrares,90,Food,Takeaway
+LIVRARE,95,Food,Takeaway
+to go,95,Food,Takeaway
+pickup,95,Food,Takeaway
+pickups,90,Food,Takeaway
+PICKUP,95,Food,Takeaway
+fuel,85,Transportation,Fuel
+fuels,80,Transportation,Fuel
+FUEL,85,Transportation,Fuel
+diesel,95,Transportation,Fuel
+diesels,90,Transportation,Fuel
+DIESEL,95,Transportation,Fuel
+benzina,95,Transportation,Fuel
+benzinas,90,Transportation,Fuel
+BENZINA,95,Transportation,Fuel
+motorina,95,Transportation,Fuel
+motorinas,90,Transportation,Fuel
+MOTORINA,95,Transportation,Fuel
+petrol,95,Transportation,Fuel
+petrols,90,Transportation,Fuel
+PETROL,95,Transportation,Fuel
+gpl,85,Transportation,Fuel
+gpls,80,Transportation,Fuel
+GPL,85,Transportation,Fuel
+lukoil,95,Transportation,Fuel
+lukoils,90,Transportation,Fuel
+LUKOIL,95,Transportation,Fuel
+omv,85,Transportation,Fuel
+omvs,80,Transportation,Fuel
+OMV,85,Transportation,Fuel
+petrom,95,Transportation,Fuel
+petroms,90,Transportation,Fuel
+PETROM,95,Transportation,Fuel
+mOL,85,Transportation,Fuel
+mOLs,80,Transportation,Fuel
+MOL,85,Transportation,Fuel
+shell,95,Transportation,Fuel
+shells,90,Transportation,Fuel
+SHELL,95,Transportation,Fuel
+bus,85,Transportation,Public Transport
+buss,80,Transportation,Public Transport
+BUS,85,Transportation,Public Transport
+train,95,Transportation,Public Transport
+trains,90,Transportation,Public Transport
+TRAIN,95,Transportation,Public Transport
+tram,85,Transportation,Public Transport
+trams,80,Transportation,Public Transport
+TRAM,85,Transportation,Public Transport
+metro,95,Transportation,Public Transport
+metros,90,Transportation,Public Transport
+METRO,95,Transportation,Public Transport
+bilet,95,Transportation,Public Transport
+bilets,90,Transportation,Public Transport
+BILET,95,Transportation,Public Transport
+ticket,95,Transportation,Public Transport
+tickets,90,Transportation,Public Transport
+TICKET,95,Transportation,Public Transport
+abonament,95,Transportation,Public Transport
+abonaments,90,Transportation,Public Transport
+ABONAMENT,95,Transportation,Public Transport
+transport,95,Transportation,Public Transport
+transports,90,Transportation,Public Transport
+TRANSPORT,95,Transportation,Public Transport
+autobuz,95,Transportation,Public Transport
+autobuzs,90,Transportation,Public Transport
+AUTOBUZ,95,Transportation,Public Transport
+tren,85,Transportation,Public Transport
+trens,80,Transportation,Public Transport
+TREN,85,Transportation,Public Transport
+metrou,95,Transportation,Public Transport
+metrous,90,Transportation,Public Transport
+METROU,95,Transportation,Public Transport
+ratb,85,Transportation,Public Transport
+ratbs,80,Transportation,Public Transport
+RATB,85,Transportation,Public Transport
+taxi,85,Transportation,Taxi
+taxis,80,Transportation,Taxi
+TAXI,85,Transportation,Taxi
+uber,85,Transportation,Taxi
+ubers,80,Transportation,Taxi
+UBER,85,Transportation,Taxi
+bolt,85,Transportation,Taxi
+bolts,80,Transportation,Taxi
+BOLT,85,Transportation,Taxi
+ride,85,Transportation,Taxi
+rides,80,Transportation,Taxi
+RIDE,85,Transportation,Taxi
+cab,85,Transportation,Taxi
+cabs,80,Transportation,Taxi
+CAB,85,Transportation,Taxi
+service,95,Transportation,Maintenance
+services,90,Transportation,Maintenance
+SERVICE,95,Transportation,Maintenance
+oil,85,Transportation,Maintenance
+oils,80,Transportation,Maintenance
+OIL,85,Transportation,Maintenance
+ulei,85,Transportation,Maintenance
+uleis,80,Transportation,Maintenance
+ULEI,85,Transportation,Maintenance
+anvelope,95,Transportation,Maintenance
+anvelopes,90,Transportation,Maintenance
+ANVELOPE,95,Transportation,Maintenance
+tires,95,Transportation,Maintenance
+tiress,90,Transportation,Maintenance
+TIRES,95,Transportation,Maintenance
+brake,95,Transportation,Maintenance
+brakes,90,Transportation,Maintenance
+BRAKE,95,Transportation,Maintenance
+placute,95,Transportation,Maintenance
+placutes,90,Transportation,Maintenance
+PLACUTE,95,Transportation,Maintenance
+repair,95,Transportation,Maintenance
+repairs,90,Transportation,Maintenance
+REPAIR,95,Transportation,Maintenance
+reparatie,95,Transportation,Maintenance
+reparaties,90,Transportation,Maintenance
+REPARATIE,95,Transportation,Maintenance
+inspection,95,Transportation,Maintenance
+inspections,90,Transportation,Maintenance
+INSPECTION,95,Transportation,Maintenance
+itp,85,Transportation,Maintenance
+itps,80,Transportation,Maintenance
+ITP,85,Transportation,Maintenance
+rent,85,Housing,Rent
+rents,80,Housing,Rent
+RENT,85,Housing,Rent
+chirie,95,Housing,Rent
+chiries,90,Housing,Rent
+CHIRIE,95,Housing,Rent
+lease,95,Housing,Rent
+leases,90,Housing,Rent
+LEASE,95,Housing,Rent
+electricity,95,Housing,Utilities
+electricitys,90,Housing,Utilities
+ELECTRICITY,95,Housing,Utilities
+electric,95,Housing,Utilities
+electrics,90,Housing,Utilities
+ELECTRIC,95,Housing,Utilities
+curent,95,Housing,Utilities
+curents,90,Housing,Utilities
+CURENT,95,Housing,Utilities
+gaz,85,Housing,Utilities
+gazs,80,Housing,Utilities
+GAZ,85,Housing,Utilities
+gas,85,Housing,Utilities
+gass,80,Housing,Utilities
+GAS,85,Housing,Utilities
+water,95,Housing,Utilities
+waters,90,Housing,Utilities
+WATER,95,Housing,Utilities
+internet,95,Housing,Utilities
+internets,90,Housing,Utilities
+INTERNET,95,Housing,Utilities
+wifi,85,Housing,Utilities
+wifis,80,Housing,Utilities
+WIFI,85,Housing,Utilities
+utility,95,Housing,Utilities
+utilitys,90,Housing,Utilities
+UTILITY,95,Housing,Utilities
+utilities,95,Housing,Utilities
+utilitiess,90,Housing,Utilities
+UTILITIES,95,Housing,Utilities
+salubritate,95,Housing,Utilities
+salubritates,90,Housing,Utilities
+SALUBRITATE,95,Housing,Utilities
+mortgage,95,Housing,Mortgage
+mortgages,90,Housing,Mortgage
+MORTGAGE,95,Housing,Mortgage
+ipoteca,95,Housing,Mortgage
+ipotecas,90,Housing,Mortgage
+IPOTECA,95,Housing,Mortgage
+credit casa,95,Housing,Mortgage
+paint,95,Housing,Maintenance
+paints,90,Housing,Maintenance
+PAINT,95,Housing,Maintenance
+vopsea,95,Housing,Maintenance
+vopseas,90,Housing,Maintenance
+VOPSEA,95,Housing,Maintenance
+cement,95,Housing,Maintenance
+cements,90,Housing,Maintenance
+CEMENT,95,Housing,Maintenance
+repair,95,Housing,Maintenance
+repairs,90,Housing,Maintenance
+REPAIR,95,Housing,Maintenance
+renovare,95,Housing,Maintenance
+renovares,90,Housing,Maintenance
+RENOVARE,95,Housing,Maintenance
+tools,95,Housing,Maintenance
+toolss,90,Housing,Maintenance
+TOOLS,95,Housing,Maintenance
+surub,95,Housing,Maintenance
+surubs,90,Housing,Maintenance
+SURUB,95,Housing,Maintenance
+hammer,95,Housing,Maintenance
+hammers,90,Housing,Maintenance
+HAMMER,95,Housing,Maintenance
+ciocan,95,Housing,Maintenance
+ciocans,90,Housing,Maintenance
+CIOCAN,95,Housing,Maintenance
+cinema,95,Entertainment,Movies
+cinemas,90,Entertainment,Movies
+CINEMA,95,Entertainment,Movies
+movie,95,Entertainment,Movies
+movies,90,Entertainment,Movies
+MOVIE,95,Entertainment,Movies
+film,85,Entertainment,Movies
+films,80,Entertainment,Movies
+FILM,85,Entertainment,Movies
+imax,85,Entertainment,Movies
+imaxs,80,Entertainment,Movies
+IMAX,85,Entertainment,Movies
+ticket cinema,95,Entertainment,Movies
+concert,95,Entertainment,Concerts
+concerts,90,Entertainment,Concerts
+CONCERT,95,Entertainment,Concerts
+festival,95,Entertainment,Concerts
+festivals,90,Entertainment,Concerts
+FESTIVAL,95,Entertainment,Concerts
+untold,95,Entertainment,Concerts
+untolds,90,Entertainment,Concerts
+UNTOLD,95,Entertainment,Concerts
+electric castle,95,Entertainment,Concerts
+show,85,Entertainment,Concerts
+shows,80,Entertainment,Concerts
+SHOW,85,Entertainment,Concerts
+lego,85,Entertainment,Hobbies
+legos,80,Entertainment,Hobbies
+LEGO,85,Entertainment,Hobbies
+paint,95,Entertainment,Hobbies
+paints,90,Entertainment,Hobbies
+PAINT,95,Entertainment,Hobbies
+gaming,95,Entertainment,Hobbies
+gamings,90,Entertainment,Hobbies
+GAMING,95,Entertainment,Hobbies
+game,85,Entertainment,Hobbies
+games,80,Entertainment,Hobbies
+GAME,85,Entertainment,Hobbies
+boardgame,95,Entertainment,Hobbies
+boardgames,90,Entertainment,Hobbies
+BOARDGAME,95,Entertainment,Hobbies
+yarn,85,Entertainment,Hobbies
+yarns,80,Entertainment,Hobbies
+YARN,85,Entertainment,Hobbies
+camera,95,Entertainment,Hobbies
+cameras,90,Entertainment,Hobbies
+CAMERA,95,Entertainment,Hobbies
+netflix,95,Entertainment,Subscriptions
+netflixs,90,Entertainment,Subscriptions
+NETFLIX,95,Entertainment,Subscriptions
+spotify,95,Entertainment,Subscriptions
+spotifys,90,Entertainment,Subscriptions
+SPOTIFY,95,Entertainment,Subscriptions
+youtube premium,95,Entertainment,Subscriptions
+disney,95,Entertainment,Subscriptions
+disneys,90,Entertainment,Subscriptions
+DISNEY,95,Entertainment,Subscriptions
+hbo,85,Entertainment,Subscriptions
+hbos,80,Entertainment,Subscriptions
+HBO,85,Entertainment,Subscriptions
+max,85,Entertainment,Subscriptions
+maxs,80,Entertainment,Subscriptions
+MAX,85,Entertainment,Subscriptions
+apple tv,95,Entertainment,Subscriptions
+subscription,95,Entertainment,Subscriptions
+subscriptions,90,Entertainment,Subscriptions
+SUBSCRIPTION,95,Entertainment,Subscriptions
+abonament,95,Entertainment,Subscriptions
+abonaments,90,Entertainment,Subscriptions
+ABONAMENT,95,Entertainment,Subscriptions
+pharmacy,95,Healthcare,Medicines
+pharmacys,90,Healthcare,Medicines
+PHARMACY,95,Healthcare,Medicines
+farmacie,95,Healthcare,Medicines
+farmacies,90,Healthcare,Medicines
+FARMACIE,95,Healthcare,Medicines
+paracetamol,95,Healthcare,Medicines
+paracetamols,90,Healthcare,Medicines
+PARACETAMOL,95,Healthcare,Medicines
+ibuprofen,95,Healthcare,Medicines
+ibuprofens,90,Healthcare,Medicines
+IBUPROFEN,95,Healthcare,Medicines
+vitamin,95,Healthcare,Medicines
+vitamins,90,Healthcare,Medicines
+VITAMIN,95,Healthcare,Medicines
+medicament,95,Healthcare,Medicines
+medicaments,90,Healthcare,Medicines
+MEDICAMENT,95,Healthcare,Medicines
+doctor,95,Healthcare,Doctor
+doctors,90,Healthcare,Doctor
+DOCTOR,95,Healthcare,Doctor
+clinic,95,Healthcare,Doctor
+clinics,90,Healthcare,Doctor
+CLINIC,95,Healthcare,Doctor
+consult,95,Healthcare,Doctor
+consults,90,Healthcare,Doctor
+CONSULT,95,Healthcare,Doctor
+consultatie,95,Healthcare,Doctor
+consultaties,90,Healthcare,Doctor
+CONSULTATIE,95,Healthcare,Doctor
+hospital,95,Healthcare,Doctor
+hospitals,90,Healthcare,Doctor
+HOSPITAL,95,Healthcare,Doctor
+spital,95,Healthcare,Doctor
+spitals,90,Healthcare,Doctor
+SPITAL,95,Healthcare,Doctor
+insurance,95,Healthcare,Insurance
+insurances,90,Healthcare,Insurance
+INSURANCE,95,Healthcare,Insurance
+asigurare sanatate,95,Healthcare,Insurance
+dentist,95,Healthcare,Dental
+dentists,90,Healthcare,Dental
+DENTIST,95,Healthcare,Dental
+dental,95,Healthcare,Dental
+dentals,90,Healthcare,Dental
+DENTAL,95,Healthcare,Dental
+stomatolog,95,Healthcare,Dental
+stomatologs,90,Healthcare,Dental
+STOMATOLOG,95,Healthcare,Dental
+tooth,95,Healthcare,Dental
+tooths,90,Healthcare,Dental
+TOOTH,95,Healthcare,Dental
+implant,95,Healthcare,Dental
+implants,90,Healthcare,Dental
+IMPLANT,95,Healthcare,Dental
+tuition,95,Education,Tuition
+tuitions,90,Education,Tuition
+TUITION,95,Education,Tuition
+taxa,85,Education,Tuition
+taxas,80,Education,Tuition
+TAXA,85,Education,Tuition
+universitate,95,Education,Tuition
+universitates,90,Education,Tuition
+UNIVERSITATE,95,Education,Tuition
+college,95,Education,Tuition
+colleges,90,Education,Tuition
+COLLEGE,95,Education,Tuition
+book,85,Education,Books
+books,80,Education,Books
+BOOK,85,Education,Books
+books,95,Education,Books
+bookss,90,Education,Books
+BOOKS,95,Education,Books
+carte,95,Education,Books
+cartes,90,Education,Books
+CARTE,95,Education,Books
+carti,95,Education,Books
+cartis,90,Education,Books
+CARTI,95,Education,Books
+manual,95,Education,Books
+manuals,90,Education,Books
+MANUAL,95,Education,Books
+course,95,Education,Courses
+courses,90,Education,Courses
+COURSE,95,Education,Courses
+courses,95,Education,Courses
+coursess,90,Education,Courses
+COURSES,95,Education,Courses
+curs,85,Education,Courses
+curss,80,Education,Courses
+CURS,85,Education,Courses
+udemy,95,Education,Courses
+udemys,90,Education,Courses
+UDEMY,95,Education,Courses
+coursera,95,Education,Courses
+courseras,90,Education,Courses
+COURSERA,95,Education,Courses
+pen,85,Education,Supplies
+pens,80,Education,Supplies
+PEN,85,Education,Supplies
+pix,85,Education,Supplies
+pixs,80,Education,Supplies
+PIX,85,Education,Supplies
+caiet,95,Education,Supplies
+caiets,90,Education,Supplies
+CAIET,95,Education,Supplies
+notebook,95,Education,Supplies
+notebooks,90,Education,Supplies
+NOTEBOOK,95,Education,Supplies
+paper,95,Education,Supplies
+papers,90,Education,Supplies
+PAPER,95,Education,Supplies
+hartie,95,Education,Supplies
+harties,90,Education,Supplies
+HARTIE,95,Education,Supplies
+marker,95,Education,Supplies
+markers,90,Education,Supplies
+MARKER,95,Education,Supplies
+tricou,95,Shopping,Clothing
+tricous,90,Shopping,Clothing
+TRICOU,95,Shopping,Clothing
+tricouri,95,Shopping,Clothing
+tricouris,90,Shopping,Clothing
+TRICOURI,95,Shopping,Clothing
+shirt,95,Shopping,Clothing
+shirts,90,Shopping,Clothing
+SHIRT,95,Shopping,Clothing
+shirts,95,Shopping,Clothing
+shirtss,90,Shopping,Clothing
+SHIRTS,95,Shopping,Clothing
+t-shirt,95,Shopping,Clothing
+t-shirts,90,Shopping,Clothing
+T-SHIRT,95,Shopping,Clothing
+jeans,95,Shopping,Clothing
+jeanss,90,Shopping,Clothing
+JEANS,95,Shopping,Clothing
+pantaloni,95,Shopping,Clothing
+pantalonis,90,Shopping,Clothing
+PANTALONI,95,Shopping,Clothing
+pantalon,95,Shopping,Clothing
+pantalons,90,Shopping,Clothing
+PANTALON,95,Shopping,Clothing
+bluza,95,Shopping,Clothing
+bluzas,90,Shopping,Clothing
+BLUZA,95,Shopping,Clothing
+rochie,95,Shopping,Clothing
+rochies,90,Shopping,Clothing
+ROCHIE,95,Shopping,Clothing
+costum,95,Shopping,Clothing
+costums,90,Shopping,Clothing
+COSTUM,95,Shopping,Clothing
+fular,95,Shopping,Clothing
+fulars,90,Shopping,Clothing
+FULAR,95,Shopping,Clothing
+geaca,95,Shopping,Clothing
+geacas,90,Shopping,Clothing
+GEACA,95,Shopping,Clothing
+sosete,95,Shopping,Clothing
+sosetes,90,Shopping,Clothing
+SOSETE,95,Shopping,Clothing
+shoes,95,Shopping,Clothing
+shoess,90,Shopping,Clothing
+SHOES,95,Shopping,Clothing
+pantofi,95,Shopping,Clothing
+pantofis,90,Shopping,Clothing
+PANTOFI,95,Shopping,Clothing
+sandale,95,Shopping,Clothing
+sandales,90,Shopping,Clothing
+SANDALE,95,Shopping,Clothing
+jacket,95,Shopping,Clothing
+jackets,90,Shopping,Clothing
+JACKET,95,Shopping,Clothing
+haine,95,Shopping,Clothing
+haines,90,Shopping,Clothing
+HAINE,95,Shopping,Clothing
+fashion,95,Shopping,Clothing
+fashions,90,Shopping,Clothing
+FASHION,95,Shopping,Clothing
+vestitie,95,Shopping,Clothing
+vestities,90,Shopping,Clothing
+VESTITIE,95,Shopping,Clothing
+rufe,85,Shopping,Clothing
+rufes,80,Shopping,Clothing
+RUFE,85,Shopping,Clothing
+geanta,95,Shopping,Clothing
+geantas,90,Shopping,Clothing
+GEANTA,95,Shopping,Clothing
+hoodie,95,Shopping,Clothing
+hoodies,90,Shopping,Clothing
+HOODIE,95,Shopping,Clothing
+hanorac,95,Shopping,Clothing
+hanoracs,90,Shopping,Clothing
+HANORAC,95,Shopping,Clothing
+cap,85,Shopping,Clothing
+caps,80,Shopping,Clothing
+CAP,85,Shopping,Clothing
+sapca,95,Shopping,Clothing
+sapcas,90,Shopping,Clothing
+SAPCA,95,Shopping,Clothing
+belt,85,Shopping,Clothing
+belts,80,Shopping,Clothing
+BELT,85,Shopping,Clothing
+curea,95,Shopping,Clothing
+cureas,90,Shopping,Clothing
+CUREA,95,Shopping,Clothing
+gloves,95,Shopping,Clothing
+glovess,90,Shopping,Clothing
+GLOVES,95,Shopping,Clothing
+manusi,95,Shopping,Clothing
+manusis,90,Shopping,Clothing
+MANUSI,95,Shopping,Clothing
+coat,85,Shopping,Clothing
+coats,80,Shopping,Clothing
+COAT,85,Shopping,Clothing
+palton,95,Shopping,Clothing
+paltons,90,Shopping,Clothing
+PALTON,95,Shopping,Clothing
+dress,95,Shopping,Clothing
+dresss,90,Shopping,Clothing
+DRESS,95,Shopping,Clothing
+skirt,95,Shopping,Clothing
+skirts,90,Shopping,Clothing
+SKIRT,95,Shopping,Clothing
+fusta,95,Shopping,Clothing
+fustas,90,Shopping,Clothing
+FUSTA,95,Shopping,Clothing
+blouse,95,Shopping,Clothing
+blouses,90,Shopping,Clothing
+BLOUSE,95,Shopping,Clothing
+sneakers,95,Shopping,Clothing
+sneakerss,90,Shopping,Clothing
+SNEAKERS,95,Shopping,Clothing
+adidasi,95,Shopping,Clothing
+adidasis,90,Shopping,Clothing
+ADIDASI,95,Shopping,Clothing
+nike,85,Shopping,Clothing
+nikes,80,Shopping,Clothing
+NIKE,85,Shopping,Clothing
+adidas,95,Shopping,Clothing
+adidass,90,Shopping,Clothing
+ADIDAS,95,Shopping,Clothing
+zara,85,Shopping,Clothing
+zaras,80,Shopping,Clothing
+ZARA,85,Shopping,Clothing
+h&m,85,Shopping,Clothing
+h&ms,80,Shopping,Clothing
+H&M,85,Shopping,Clothing
+phone,95,Shopping,Electronics
+phones,90,Shopping,Electronics
+PHONE,95,Shopping,Electronics
+telefon,95,Shopping,Electronics
+telefons,90,Shopping,Electronics
+TELEFON,95,Shopping,Electronics
+iphone,95,Shopping,Electronics
+iphones,90,Shopping,Electronics
+IPHONE,95,Shopping,Electronics
+samsung,95,Shopping,Electronics
+samsungs,90,Shopping,Electronics
+SAMSUNG,95,Shopping,Electronics
+laptop,95,Shopping,Electronics
+laptops,90,Shopping,Electronics
+LAPTOP,95,Shopping,Electronics
+mouse,95,Shopping,Electronics
+mouses,90,Shopping,Electronics
+MOUSE,95,Shopping,Electronics
+keyboard,95,Shopping,Electronics
+keyboards,90,Shopping,Electronics
+KEYBOARD,95,Shopping,Electronics
+monitor,95,Shopping,Electronics
+monitors,90,Shopping,Electronics
+MONITOR,95,Shopping,Electronics
+tv,85,Shopping,Electronics
+tvs,80,Shopping,Electronics
+TV,85,Shopping,Electronics
+televizor,95,Shopping,Electronics
+televizors,90,Shopping,Electronics
+TELEVIZOR,95,Shopping,Electronics
+cable,95,Shopping,Electronics
+cables,90,Shopping,Electronics
+CABLE,95,Shopping,Electronics
+charger,95,Shopping,Electronics
+chargers,90,Shopping,Electronics
+CHARGER,95,Shopping,Electronics
+casti,95,Shopping,Electronics
+castis,90,Shopping,Electronics
+CASTI,95,Shopping,Electronics
+headphones,95,Shopping,Electronics
+headphoness,90,Shopping,Electronics
+HEADPHONES,95,Shopping,Electronics
+chair,95,Shopping,Home
+chairs,90,Shopping,Home
+CHAIR,95,Shopping,Home
+scaun,95,Shopping,Home
+scauns,90,Shopping,Home
+SCAUN,95,Shopping,Home
+masa,85,Shopping,Home
+masas,80,Shopping,Home
+MASA,85,Shopping,Home
+table,95,Shopping,Home
+tables,90,Shopping,Home
+TABLE,95,Shopping,Home
+sofa,85,Shopping,Home
+sofas,80,Shopping,Home
+SOFA,85,Shopping,Home
+canapea,95,Shopping,Home
+canapeas,90,Shopping,Home
+CANAPEA,95,Shopping,Home
+lamp,85,Shopping,Home
+lamps,80,Shopping,Home
+LAMP,85,Shopping,Home
+lampa,95,Shopping,Home
+lampas,90,Shopping,Home
+LAMPA,95,Shopping,Home
+bed,85,Shopping,Home
+beds,80,Shopping,Home
+BED,85,Shopping,Home
+pat,85,Shopping,Home
+pats,80,Shopping,Home
+PAT,85,Shopping,Home
+perna,95,Shopping,Home
+pernas,90,Shopping,Home
+PERNA,95,Shopping,Home
+pillow,95,Shopping,Home
+pillows,90,Shopping,Home
+PILLOW,95,Shopping,Home
+blanket,95,Shopping,Home
+blankets,90,Shopping,Home
+BLANKET,95,Shopping,Home
+patura,95,Shopping,Home
+paturas,90,Shopping,Home
+PATURA,95,Shopping,Home
+gift,85,Shopping,Gifts
+gifts,80,Shopping,Gifts
+GIFT,85,Shopping,Gifts
+cadou,95,Shopping,Gifts
+cadous,90,Shopping,Gifts
+CADOU,95,Shopping,Gifts
+flowers,95,Shopping,Gifts
+flowerss,90,Shopping,Gifts
+FLOWERS,95,Shopping,Gifts
+flori,95,Shopping,Gifts
+floris,90,Shopping,Gifts
+FLORI,95,Shopping,Gifts
+toy,85,Shopping,Gifts
+toys,80,Shopping,Gifts
+TOY,85,Shopping,Gifts
+jucarie,95,Shopping,Gifts
+jucaries,90,Shopping,Gifts
+JUCARIE,95,Shopping,Gifts
+giftcard,95,Shopping,Gifts
+giftcards,90,Shopping,Gifts
+GIFTCARD,95,Shopping,Gifts
+other,95,Other,Other
+others,90,Other,Other
+OTHER,95,Other,Other
+misc,85,Other,Other
+miscs,80,Other,Other
+MISC,85,Other,Other
+diverse,95,Other,Other
+diverses,90,Other,Other
+DIVERSE,95,Other,Other
+altele,95,Other,Other
+alteles,90,Other,Other
+ALTELE,95,Other,Other
+unknown,95,Other,Other
+unknowns,90,Other,Other
+UNKNOWN,95,Other,Other
+cereal,90,Food,Groceries
+oats,80,Food,Groceries
+ovaz,80,Food,Groceries
+biscuit,90,Food,Groceries
+biscuiti,90,Food,Groceries
+cookies,90,Food,Groceries
+cracker,90,Food,Groceries
+jam,80,Food,Groceries
+gem,80,Food,Groceries
+honey,80,Food,Groceries
+miere,80,Food,Groceries
+ketchup,90,Food,Groceries
+mustard,90,Food,Groceries
+maioneza,90,Food,Groceries
+yogurt,90,Food,Groceries
+smantana,90,Food,Groceries
+cream,80,Food,Groceries
+salami,90,Food,Groceries
+salam,80,Food,Groceries
+ham,80,Food,Groceries
+sunca,80,Food,Groceries
+cucumber,90,Food,Groceries
+castraveti,90,Food,Groceries
+pepper,90,Food,Groceries
+ardei,80,Food,Groceries
+onion,80,Food,Groceries
+ceapa,80,Food,Groceries
+garlic,90,Food,Groceries
+usturoi,90,Food,Groceries
+orange,90,Food,Groceries
+portocale,90,Food,Groceries
+pear,80,Food,Groceries
+para,80,Food,Groceries
+grapes,90,Food,Groceries
+struguri,90,Food,Groceries
+mcdonalds,90,Food,Restaurants
+kfc,80,Food,Restaurants
+burger king,90,Food,Restaurants
+subway,90,Food,Restaurants
+starbucks,90,Food,Restaurants
+cafenea,90,Food,Restaurants
+pizzerie,90,Food,Restaurants
+restaurantul,90,Food,Restaurants
+wolt,80,Food,Takeaway
+deliveroo,90,Food,Takeaway
+take out,90,Food,Takeaway
+ready meal,90,Food,Takeaway
+comanda online,90,Food,Takeaway
+eurodiesel,90,Transportation,Fuel
+premium diesel,90,Transportation,Fuel
+premium95,90,Transportation,Fuel
+premium100,90,Transportation,Fuel
+adblue,90,Transportation,Fuel
+platform ticket,90,Transportation,Public Transport
+rail,80,Transportation,Public Transport
+railway,90,Transportation,Public Transport
+gara,80,Transportation,Public Transport
+station,90,Transportation,Public Transport
+lyft,80,Transportation,Taxi
+transfer,90,Transportation,Taxi
+airport taxi,90,Transportation,Taxi
+antifreeze,90,Transportation,Maintenance
+coolant,90,Transportation,Maintenance
+filtru,90,Transportation,Maintenance
+filter,90,Transportation,Maintenance
+battery,90,Transportation,Maintenance
+baterie,90,Transportation,Maintenance
+spark plug,90,Transportation,Maintenance
+electric bill,90,Housing,Utilities
+water bill,90,Housing,Utilities
+gas bill,90,Housing,Utilities
+fiber,80,Housing,Utilities
+cablu,80,Housing,Utilities
+cablu tv,90,Housing,Utilities
+drill,80,Housing,Maintenance
+bormasina,90,Housing,Maintenance
+screw,80,Housing,Maintenance
+surubelnita,90,Housing,Maintenance
+nails,80,Housing,Maintenance
+cuie,80,Housing,Maintenance
+silicone,90,Housing,Maintenance
+silicon,90,Housing,Maintenance
+plaster,90,Housing,Maintenance
+glet,80,Housing,Maintenance
+popcorn,90,Entertainment,Movies
+cinemacity,90,Entertainment,Movies
+movie ticket,90,Entertainment,Movies
+live nation,90,Entertainment,Concerts
+arena,80,Entertainment,Concerts
+gig,80,Entertainment,Concerts
+puzzle,90,Entertainment,Hobbies
+drone,80,Entertainment,Hobbies
+canvas,90,Entertainment,Hobbies
+pensule,90,Entertainment,Hobbies
+brush,80,Entertainment,Hobbies
+prime video,90,Entertainment,Subscriptions
+amazon music,90,Entertainment,Subscriptions
+tidal,80,Entertainment,Subscriptions
+deezer,90,Entertainment,Subscriptions
+chatgpt plus,90,Entertainment,Subscriptions
+nurofen,90,Healthcare,Medicines
+aspirin,90,Healthcare,Medicines
+vitamina c,90,Healthcare,Medicines
+bandage,90,Healthcare,Medicines
+bandaj,90,Healthcare,Medicines
+mask,80,Healthcare,Medicines
+masca,80,Healthcare,Medicines
+ecografie,90,Healthcare,Doctor
+xray,80,Healthcare,Doctor
+radiology,90,Healthcare,Doctor
+analize,90,Healthcare,Doctor
+laborator,90,Healthcare,Doctor
+medical insurance,90,Healthcare,Insurance
+health plan,90,Healthcare,Insurance
+orthodontist,90,Healthcare,Dental
+braces,90,Healthcare,Dental
+periaj,90,Healthcare,Dental
+dictionary,90,Education,Books
+atlas,80,Education,Books
+novel,80,Education,Books
+roman,80,Education,Books
+skillshare,90,Education,Courses
+pluralsight,90,Education,Courses
+codecademy,90,Education,Courses
+stapler,90,Education,Supplies
+agrafe,90,Education,Supplies
+eraser,90,Education,Supplies
+radiera,90,Education,Supplies
+ruler,80,Education,Supplies
+rigla,80,Education,Supplies
+pijama,90,Shopping,Clothing
+pyjamas,90,Shopping,Clothing
+swimsuit,90,Shopping,Clothing
+costum baie,90,Shopping,Clothing
+wallet,90,Shopping,Clothing
+portofel,90,Shopping,Clothing
+umbrella,90,Shopping,Clothing
+umbrela,90,Shopping,Clothing
+watch,80,Shopping,Clothing
+ceas,80,Shopping,Clothing
+ssd,80,Shopping,Electronics
+hard drive,90,Shopping,Electronics
+usb,80,Shopping,Electronics
+flash drive,90,Shopping,Electronics
+router,90,Shopping,Electronics
+printer,90,Shopping,Electronics
+ink,80,Shopping,Electronics
+toner,80,Shopping,Electronics
+webcam,90,Shopping,Electronics
+microphone,90,Shopping,Electronics
+curtain,90,Shopping,Home
+perdea,90,Shopping,Home
+towel,80,Shopping,Home
+prosop,90,Shopping,Home
+plate,80,Shopping,Home
+farfurie,90,Shopping,Home
+glass,80,Shopping,Home
+pahar,80,Shopping,Home
+fork,80,Shopping,Home
+furculita,90,Shopping,Home
+souvenir,90,Shopping,Gifts
+gift box,90,Shopping,Gifts
+gift wrap,90,Shopping,Gifts
+greeting card,90,Shopping,Gifts
+felicitare,90,Shopping,Gifts
+fee,80,Other,Other
+processing,90,Other,Other
+adjustment,90,Other,Other
+unknown item,90,Other,Other
+lentils,90,Food,Groceries
+linte,90,Food,Groceries
+beans,90,Food,Groceries
+fasole,90,Food,Groceries
+peas,90,Food,Groceries
+mazare,90,Food,Groceries
+spinach,90,Food,Groceries
+spanac,90,Food,Groceries
+broccoli,90,Food,Groceries
+cauliflower,90,Food,Groceries
+conopida,90,Food,Groceries
+zucchini,90,Food,Groceries
+dovlecel,90,Food,Groceries
+eggplant,90,Food,Groceries
+vanata,90,Food,Groceries
+mushroom,90,Food,Groceries
+ciuperci,90,Food,Groceries
+kiwi,90,Food,Groceries
+pineapple,90,Food,Groceries
+ananas,90,Food,Groceries
+lemon,90,Food,Groceries
+lamaie,90,Food,Groceries
+lime,90,Food,Groceries
+coconut,90,Food,Groceries
+nuca cocos,90,Food,Groceries
+walnuts,90,Food,Groceries
+nuci,90,Food,Groceries
+almonds,90,Food,Groceries
+migdale,90,Food,Groceries
+hazelnuts,90,Food,Groceries
+alune,90,Food,Groceries
+cashews,90,Food,Groceries
+fistic,90,Food,Groceries
+pistachio,90,Food,Groceries
+raisins,90,Food,Groceries
+stafide,90,Food,Groceries
+olive oil,90,Food,Groceries
+ulei masline,90,Food,Groceries
+vinegar,90,Food,Groceries
+otet,90,Food,Groceries
+soy sauce,90,Food,Groceries
+sos soia,90,Food,Groceries
+flour tortillas,90,Food,Groceries
+tortilla,90,Food,Groceries
+frozen pizza,90,Food,Groceries
+ice cream,90,Food,Groceries
+inghetata,90,Food,Groceries
+chocolate,90,Food,Groceries
+ciocolata,90,Food,Groceries
+candy,90,Food,Groceries
+bomboane,90,Food,Groceries
+chips,90,Food,Groceries
+snacks,90,Food,Groceries
+brasserie,90,Food,Restaurants
+cantina,90,Food,Restaurants
+food court,90,Food,Restaurants
+buffet,90,Food,Restaurants
+rotisserie,90,Food,Restaurants
+shaorma,90,Food,Restaurants
+shawarma,90,Food,Restaurants
+kebab,90,Food,Restaurants
+doner,90,Food,Restaurants
+cantină,90,Food,Restaurants
+drive thru,90,Food,Takeaway
+ready to eat,90,Food,Takeaway
+meal deal,90,Food,Takeaway
+quick meal,90,Food,Takeaway
+octane95,90,Transportation,Fuel
+octane98,90,Transportation,Fuel
+octane100,90,Transportation,Fuel
+diesel premium,90,Transportation,Fuel
+fuel card,90,Transportation,Fuel
+trolleybus,90,Transportation,Public Transport
+troleibuz,90,Transportation,Public Transport
+ferry,90,Transportation,Public Transport
+feribot,90,Transportation,Public Transport
+platforma,90,Transportation,Public Transport
+cabify,90,Transportation,Taxi
+black cab,90,Transportation,Taxi
+rideshare,90,Transportation,Taxi
+windshield,90,Transportation,Maintenance
+parbriz,90,Transportation,Maintenance
+wiper,90,Transportation,Maintenance
+stergatoare,90,Transportation,Maintenance
+alignment,90,Transportation,Maintenance
+geometrie,90,Transportation,Maintenance
+clutch,90,Transportation,Maintenance
+ambreiaj,90,Transportation,Maintenance
+gearbox,90,Transportation,Maintenance
+cutie viteze,90,Transportation,Maintenance
+radiator,90,Transportation,Maintenance
+monthly rent,90,Housing,Rent
+rental payment,90,Housing,Rent
+electric meter,90,Housing,Utilities
+gas meter,90,Housing,Utilities
+water meter,90,Housing,Utilities
+sewer,90,Housing,Utilities
+canalizare,90,Housing,Utilities
+heating,90,Housing,Utilities
+incalzire,90,Housing,Utilities
+district heating,90,Housing,Utilities
+loan installment,90,Housing,Mortgage
+home loan,90,Housing,Mortgage
+bank mortgage,90,Housing,Mortgage
+tile,90,Housing,Maintenance
+gresie,90,Housing,Maintenance
+faience,90,Housing,Maintenance
+faianta,90,Housing,Maintenance
+grout,90,Housing,Maintenance
+chit,90,Housing,Maintenance
+ladder,90,Housing,Maintenance
+scara,90,Housing,Maintenance
+roller,90,Housing,Maintenance
+trafalet,90,Housing,Maintenance
+paintbrush,90,Housing,Maintenance
+pensula,90,Housing,Maintenance
+sealant,90,Housing,Maintenance
+adeziv,90,Housing,Maintenance
+glue,90,Housing,Maintenance
+lipici,90,Housing,Maintenance
+3d movie,90,Entertainment,Movies
+vip cinema,90,Entertainment,Movies
+cinematograf,90,Entertainment,Movies
+opera,90,Entertainment,Concerts
+theatre,90,Entertainment,Concerts
+teatru,90,Entertainment,Concerts
+musical,90,Entertainment,Concerts
+philharmonic,90,Entertainment,Concerts
+guitar,90,Entertainment,Hobbies
+chitara,90,Entertainment,Hobbies
+piano,90,Entertainment,Hobbies
+keyboard instrument,90,Entertainment,Hobbies
+ukulele,90,Entertainment,Hobbies
+fishing,90,Entertainment,Hobbies
+pescuit,90,Entertainment,Hobbies
+cycling,90,Entertainment,Hobbies
+bicicleta,90,Entertainment,Hobbies
+knitting,90,Entertainment,Hobbies
+crosetat,90,Entertainment,Hobbies
+photography,90,Entertainment,Hobbies
+icloud,90,Entertainment,Subscriptions
+google one,90,Entertainment,Subscriptions
+office365,90,Entertainment,Subscriptions
+microsoft 365,90,Entertainment,Subscriptions
+dropbox,90,Entertainment,Subscriptions
+canva pro,90,Entertainment,Subscriptions
+antibiotic,90,Healthcare,Medicines
+antibiotice,90,Healthcare,Medicines
+syrup,90,Healthcare,Medicines
+sirop,90,Healthcare,Medicines
+thermometer,90,Healthcare,Medicines
+termometru,90,Healthcare,Medicines
+disinfectant,90,Healthcare,Medicines
+dezinfectant,90,Healthcare,Medicines
+plaster bandage,90,Healthcare,Medicines
+cardiology,90,Healthcare,Doctor
+cardiologie,90,Healthcare,Doctor
+dermatology,90,Healthcare,Doctor
+dermatologie,90,Healthcare,Doctor
+neurology,90,Healthcare,Doctor
+neurologie,90,Healthcare,Doctor
+pediatrics,90,Healthcare,Doctor
+pediatrie,90,Healthcare,Doctor
+policy health,90,Healthcare,Insurance
+medical policy,90,Healthcare,Insurance
+toothpaste prescribed,90,Healthcare,Dental
+dental cleaning,90,Healthcare,Dental
+detartraj,90,Healthcare,Dental
+crown,90,Healthcare,Dental
+coroana,90,Healthcare,Dental
+semester fee,90,Education,Tuition
+school tax,90,Education,Tuition
+encyclopedia,90,Education,Books
+encyclopedie,90,Education,Books
+textbook,90,Education,Books
+workbook,90,Education,Books
+workbook english,90,Education,Books
+bootcamp,90,Education,Courses
+training,90,Education,Courses
+certification,90,Education,Courses
+certificat curs,90,Education,Courses
+highlighter,90,Education,Supplies
+evidentiator,90,Education,Supplies
+binder,90,Education,Supplies
+dosar,90,Education,Supplies
+folder,90,Education,Supplies
+compass,90,Education,Supplies
+compas,90,Education,Supplies
+calculator school,90,Education,Supplies
+beanie,90,Shopping,Clothing
+caciula,90,Shopping,Clothing
+earmuffs,90,Shopping,Clothing
+colanti,90,Shopping,Clothing
+leggings,90,Shopping,Clothing
+shorts,90,Shopping,Clothing
+sort,90,Shopping,Clothing
+tie,90,Shopping,Clothing
+cravata,90,Shopping,Clothing
+bowtie,90,Shopping,Clothing
+papion,90,Shopping,Clothing
+blazer,90,Shopping,Clothing
+cardigan,90,Shopping,Clothing
+vest,90,Shopping,Clothing
+vesta,90,Shopping,Clothing
+flip flops,90,Shopping,Clothing
+slippers,90,Shopping,Clothing
+papuci,90,Shopping,Clothing
+boots,90,Shopping,Clothing
+cizme,90,Shopping,Clothing
+raincoat,90,Shopping,Clothing
+impermeabil,90,Shopping,Clothing
+powerbank,90,Shopping,Electronics
+smartwatch,90,Shopping,Electronics
+tablet,90,Shopping,Electronics
+e-reader,90,Shopping,Electronics
+kindle,90,Shopping,Electronics
+graphics card,90,Shopping,Electronics
+gpu,90,Shopping,Electronics
+cpu,90,Shopping,Electronics
+processor,90,Shopping,Electronics
+ram memory,90,Shopping,Electronics
+motherboard,90,Shopping,Electronics
+ssd nvme,90,Shopping,Electronics
+hdmi cable,90,Shopping,Electronics
+ethernet cable,90,Shopping,Electronics
+mug,90,Shopping,Home
+cana,90,Shopping,Home
+bowl,90,Shopping,Home
+bol,90,Shopping,Home
+knife,90,Shopping,Home
+cutit,90,Shopping,Home
+spoon,90,Shopping,Home
+lingura,90,Shopping,Home
+pan,90,Shopping,Home
+tigaie,90,Shopping,Home
+pot,90,Shopping,Home
+oala,90,Shopping,Home
+vacuum,90,Shopping,Home
+aspirator,90,Shopping,Home
+detergent holder,90,Shopping,Home
+soap dispenser,90,Shopping,Home
+doormat,90,Shopping,Home
+pres,90,Shopping,Home
+birthday gift,90,Shopping,Gifts
+anniversary gift,90,Shopping,Gifts
+christmas gift,90,Shopping,Gifts
+gift voucher,90,Shopping,Gifts
+plush toy,90,Shopping,Gifts
+service fee,90,Other,Other
+bank fee,90,Other,Other
+commission,90,Other,Other
+miscellaneous,90,Other,Other
+rounding,90,Other,Other
+manual adjustment,90,Other,Other
+balance correction,90,Other,Other
+crispy,85,Food,Restaurants
+lipie,85,Food,Restaurants
