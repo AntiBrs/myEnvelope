@@ -15,9 +15,6 @@
 
 The recording walks through authentication, transaction entry, receipt scanning, statistics, monthly planning, forecast comparison, and the Státi assistant.
 
-
-[![Open the myEnvelope demo video](docs/assets/demo-cover.png)](docs/assets/demo.mp4)
-
 **[▶ Open the MP4 demo directly](docs/assets/demo.mp4)** if the inline player is not available in your GitHub client.
 
 > The repository contains no production credentials or real financial records. The demo shows synthetic/test data.
