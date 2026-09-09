@@ -1,0 +1,66 @@
+keyword,priority,category,subcategory
+lidl,60,Food,Groceries
+kaufland,60,Food,Groceries
+carrefour,60,Food,Groceries
+auchan,60,Food,Groceries
+tesco,60,Food,Groceries
+metro,60,Food,Groceries
+selgros,60,Food,Groceries
+profi,60,Food,Groceries
+mega image,60,Food,Groceries
+penny,60,Food,Groceries
+cora,60,Food,Groceries
+freshful,60,Food,Groceries
+glovo,50,Food,Takeaway
+tazz,50,Food,Takeaway
+bolt food,50,Food,Takeaway
+mcdonald,70,Food,Takeaway
+kfc,70,Food,Takeaway
+burger king,70,Food,Takeaway
+subway,70,Food,Takeaway
+starbucks,70,Food,Restaurants
+pizza hut,70,Food,Restaurants
+rosa,70,Food,Restaurants
+dominos,70,Food,Restaurants
+shell,60,Transportation,Fuel
+omv,60,Transportation,Fuel
+mol,60,Transportation,Fuel
+petrom,60,Transportation,Fuel
+rompetrol,60,Transportation,Fuel
+uber,60,Transportation,Taxi
+bolt,60,Transportation,Taxi
+cfr,60,Transportation,Public Transport
+zara,60,Shopping,Clothing
+h&m,60,Shopping,Clothing
+reserved,60,Shopping,Clothing
+sinsay,60,Shopping,Clothing
+cropp,60,Shopping,Clothing
+new yorker,60,Shopping,Clothing
+c&a,60,Shopping,Clothing
+deichmann,60,Shopping,Clothing
+ccc,60,Shopping,Clothing
+nike,60,Shopping,Clothing
+adidas,60,Shopping,Clothing
+puma,60,Shopping,Clothing
+ikea,60,Shopping,Home
+jysk,60,Shopping,Home
+dedeman,60,Shopping,Home
+leroy merlin,60,Shopping,Home
+hornbach,60,Shopping,Home
+brico depot,60,Shopping,Home
+emag,60,Shopping,Electronics
+altex,60,Shopping,Electronics
+flanco,60,Shopping,Electronics
+mediagalaxy,60,Shopping,Electronics
+pc garage,60,Shopping,Electronics
+farmacia tei,60,Healthcare,Medicines
+catena,60,Healthcare,Medicines
+dr max,60,Healthcare,Medicines
+sensiblu,60,Healthcare,Medicines
+help net,60,Healthcare,Medicines
+regina maria,60,Healthcare,Doctor
+medlife,60,Healthcare,Doctor
+sanador,60,Healthcare,Doctor
+omnipass,60,Entertainment,Hobbies
+world class,60,Entertainment,Hobbies
+cinemacity,60,Entertainment,Movies

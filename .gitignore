@@ -1,0 +1,48 @@
+# JavaScript / Expo
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+!backend/.env.example
+backend/config.json
+backend/documentai_config.json
+*.pem
+*.key
+*.p8
+*.p12
+*.jks
+*.mobileprovision
+*service-account*.json
+*credentials*.json
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.orig.*
+
+# Local data and uploads
+uploads/
+tmp/
+*.sqlite
+*.db
