@@ -92,7 +92,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.viewport} contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       {/* Logó szekció */}
       <View style={styles.logoContainer}>
         <Text style={styles.logoMy}>my</Text>
@@ -180,12 +180,13 @@ export default function LoginScreen({ navigation }) {
           </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#f5f5f5' },
+  viewport: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   logoContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 60 },
   logoMy: { fontSize: 36, fontWeight: '300', color: '#007bff' },
   logoEnvelope: { fontSize: 36, fontWeight: 'bold', color: '#0056b3' },

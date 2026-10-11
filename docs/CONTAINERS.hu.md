@@ -29,6 +29,20 @@ A `down` megtartja az adatokat a névvel ellátott Docker-volume-okban. A `down 
 
 Frissítés: `docker compose --env-file .env.docker up --build -d --wait`. Az inicializáló SQL csak üres MySQL-volume esetén fut. Meglévő adatbázis esetén előbb készíts mentést; a séma változásait külön migrációként kell alkalmazni. A most hozzáadott pozitívösszeg- és tervezési CHECK feltételek nem kerülnek automatikusan régi táblákra. Az API régi adatbázis mellett is ellenőrzi az új mentéseket.
 
+## Webes előnézet és görgetés
+
+A képernyők az ablak magasságához igazodnak; a hosszabb tartalom a képernyőn belül görgethető egérgörgővel, érintőpaddal vagy érintéssel. A navigációs fejléc helyben marad. A bejelentkezési és regisztrációs űrlap kisebb ablakban is végiggörgethető.
+
+Ha frissítés után a régi felület marad látható:
+
+```powershell
+docker compose --env-file .env.docker up --build -d --wait web
+```
+
+Ezután töltsd újra a böngészőlapot vagy a beágyazott előnézetet. Az újratöltés új bejelentkezést igényel; az elmentett adatok megmaradnak. Nem szükséges az adatbázis-volume törlése.
+
+Fejlesztői háttér és ismételhető ellenőrzés: [webes görgetés](WEB_SCROLL.md).
+
 ## Munkamenet és korlátok
 
 - A token 30 perc után lejár. A kijelentkezés szerveroldalon is visszavonja.

@@ -180,6 +180,8 @@ docker compose --env-file .env.docker up --build -d --wait
 
 Open **http://localhost:8080**. Local secrets are generated automatically; register your own account. See [Container setup](docs/CONTAINERS.md) for persistence, optional Document AI/n8n, and deployment boundaries.
 
+In the web preview, screen content scrolls independently while the navigation header stays in place. The login form also scrolls in short windows. After an update, rebuild the web container and reload the preview; reloading requires signing in again.
+
 ## Manual development setup
 
 ### Prerequisites

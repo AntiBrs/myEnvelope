@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { setUnauthorizedHandler } from './config/api';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -23,7 +24,12 @@ setUnauthorizedHandler(() => {
 export default function App() {
   return (
     <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator initialRouteName="Login">
+      <Stack.Navigator
+        initialRouteName="Login"
+        // Expo locks body scrolling on web. Keep cards inside the viewport so
+        // each screen's ScrollView/FlatList owns scrolling instead of the body.
+        screenOptions={Platform.OS === 'web' ? { cardStyle: { flex: 1 } } : undefined}
+      >
         <Stack.Screen
           name="Home"
           component={HomeScreen}

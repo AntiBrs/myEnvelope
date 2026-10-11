@@ -160,6 +160,8 @@ docker compose --env-file .env.docker up --build -d --wait
 
 Nyisd meg a **http://localhost:8080** címet, és regisztrálj. A titkokat a setup helyben generálja. A részleteket, az opcionális MI-integrációkat és az adatok megőrzését a [konténeres útmutató](docs/CONTAINERS.hu.md) írja le.
 
+A webes előnézetben az oldalak saját tartalma görgethető, a navigációs fejléc helyben marad. Kisebb ablakban a bejelentkezési űrlap is görgethető. Frissítés után építsd újra a webes konténert, majd töltsd újra az előnézetet; ez új bejelentkezést igényel.
+
 ## Kézi fejlesztői indítás
 
 ### Előfeltételek

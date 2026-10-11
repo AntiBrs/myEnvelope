@@ -25,6 +25,12 @@ docker compose --env-file .env.docker down
 
 Sessions last 30 minutes. Logout revokes the current token in Redis; keep Redis data durable. Browser tokens live only in memory, so reload requires login. Native tokens use SecureStore; old plaintext sessions are removed. Registration/login and expensive endpoints are rate limited; a 429 includes retry information.
 
+## Web preview and scrolling
+
+Screens are bounded to the viewport, with scrolling inside each screen and a stationary navigation header. The login and registration forms remain scrollable in short windows.
+
+After updating, run `docker compose --env-file .env.docker up --build -d --wait web`, then reload the browser tab or embedded preview. Reloading requires signing in again, but saved data is retained. Do not delete database volumes to fix a stale preview. See [web scroll regression checks](WEB_SCROLL.md) for the cause and verification steps.
+
 ## Optional n8n/Groq
 
 Run `docker compose --env-file .env.docker --profile assistant up -d`. Open http://localhost:5678, set up the owner account, and import `n8n/workflow.example.json`. Create Header Auth credentials with header `X-MyEnvelope-Secret`, matching `N8N_WEBHOOK_SECRET` in `.env.docker`, and attach them to the webhook. Configure Groq credentials/model, choose a webhook path, and activate the workflow. Set `N8N_WEBHOOK_URL=http://n8n:5678/webhook/YOUR-PATH` and run `up -d` again. Use HTTPS for external n8n servers.
