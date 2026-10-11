@@ -1,11 +1,14 @@
+import { Alert } from '../config/alerts';
 import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { clearToken } from '../config/session';
+import { API_BASE_URL, apiFetch } from '../config/api';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function HomeScreen({ route, navigation }) {
-  const { username, apiBaseUrl } = route.params || {};
+  const { username } = route.params || {};
+  const apiBaseUrl = API_BASE_URL;
 
   // Állapotok: adatok, betöltés és beállítások láthatósága
   const [userData, setUserData] = useState(null);
@@ -17,18 +20,14 @@ export default function HomeScreen({ route, navigation }) {
   // Pénzügyi összesítő lekérése a backendről
   const fetchUserData = async () => {
     try {
-      const token = await AsyncStorage.getItem('userToken');
-      const response = await fetch(`${apiBaseUrl}/user/summary`, {
+      const response = await apiFetch(`${apiBaseUrl}/user/summary`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
       // Ha a token lejárt, visszairányítás a bejelentkezéshez
       if (response.status === 401) {
-        await AsyncStorage.multiRemove(['userToken', 'userId']);
-        navigation.navigate('Login');
         return;
       }
 
@@ -69,7 +68,14 @@ export default function HomeScreen({ route, navigation }) {
 
   // Kijelentkezés: token törlése és navigáció alaphelyzetbe állítása
   const handleLogout = async () => {
-    await AsyncStorage.multiRemove(['userToken', 'userId']);
+    try {
+      const response = await apiFetch(`${apiBaseUrl}/logout`, { method: 'POST' });
+      if (!response.ok && response.status !== 401) throw new Error('Logout failed');
+    } catch (error) {
+      Alert.alert('Signed out on this device', 'The server could not be reached. The session will expire within 30 minutes.');
+    } finally {
+      await clearToken();
+    }
     setSettingsVisible(false);
     navigation.reset({
       index: 0,

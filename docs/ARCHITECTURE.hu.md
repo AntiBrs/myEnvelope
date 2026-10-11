@@ -10,7 +10,7 @@ A myEnvelope kliens–szerver architektúrát használ: React Native mobilkliens
 flowchart TB
     subgraph Kliens[Mobilkliens]
       UI[React Native képernyők]
-      Session[AsyncStorage munkamenet]
+      Session[SecureStore / böngészőmemória]
       Charts[Grafikonok és összehasonlítás]
     end
 
@@ -42,7 +42,6 @@ flowchart TB
     Parser --> DocumentAI
     Chat --> N8N
     N8N --> Groq
-    N8N -->|csak olvasási minta| MySQL
     MySQL --> Charts
 ```
 
@@ -93,9 +92,9 @@ A publikus változat nem naplózza a nyugtaképet vagy a felismert szöveget.
 
 ### Asszisztensadapter
 
-A `/chat` végpont kizárólag a kérdést és a JWT-ből származó felhasználóazonosítót küldi az n8n webhooknak. Az n8n kapcsolja össze a Groq modellt a MySQL select eszközzel. A hitelesítő adatok az n8n credential store-jában maradnak; az export csak helykitöltőket tartalmaz.
+A `/chat` végpont rögzített, paraméterezett lekérdezésekkel kizárólag a hitelesített felhasználó aktuális havi összesítését és legfeljebb 50–50 legutóbbi bevételét/kiadását olvassa. Ezt és a kérdést hitelesített n8n webhookra küldi. A Groq modell nem kap SQL-eszközt vagy adatbázis-credentialt.
 
-Éles rendszerben a csak olvasási korlátozást technikailag is ki kell kényszeríteni: külön read-only DB-fiók, tábla- és oszlopengedélyezőlista, sorlimit, paramétervalidáció és auditnapló szükséges.
+A workflow nem fér hozzá a kapott kontextuson kívüli adatokhoz. A prompt injection a válasz tartalmát továbbra is torzíthatja; a modell nem jogosultsági határ. Távoli webhookhoz HTTPS kell, a végrehajtásadat-mentés alapból kikapcsolt.
 
 ## Fontos adatfolyamok
 
@@ -134,11 +133,11 @@ Az összehasonlító képernyő három párhuzamos GET-kérést indít: havi ter
 
 | Határ | Jelenlegi védelem | Éles megerősítés |
 |---|---|---|
-| Mobil → Flask | JWT az Authorization fejlécben | HTTPS, secure storage, tokenrotáció, rate limit |
+| Mobil → Flask | SecureStore/memória, 30 perces JWT, Redis-visszavonás és rate limit | HTTPS, opcionális refresh rotáció |
 | Flask → MySQL | Paraméterezett SQL és userId-szűrés | Minimális DB-jog, TLS, migráció, audit |
 | Flask → Document AI | Szerveroldali credential | Korlátozott service account, adatmegőrzési felülvizsgálat |
-| Flask → n8n | Szerveroldali webhook | Aláírt kérés, privát hálózat, replay-védelem |
-| n8n → MySQL | Select workflow-minta | Read-only fiók, allowlist, sorlimit és naplózás |
+| Flask → n8n | Fejléces hitelesítés, korlátozott kontextus, timeout, nincs redirect | Távoli szolgáltatáshoz HTTPS, titokrotáció |
+| n8n → MySQL | Nincs kapcsolat vagy eszköz | Ne adj korlátlan adatbázis-hozzáférést a modellnek |
 
 ## Továbbfejleszthető telepítés
 

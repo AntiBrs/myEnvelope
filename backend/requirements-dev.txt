@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest>=8.3,<9
+fakeredis>=2.31,<3
+pip-audit>=2.9,<3

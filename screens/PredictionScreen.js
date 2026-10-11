@@ -1,9 +1,11 @@
+import { Alert } from '../config/alerts';
 import React, { useState, useEffect, useCallback,useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { getToken } from '../config/session';
+import { API_BASE_URL, apiFetch } from '../config/api';
 
 export default function PredictionScreen({ route, navigation }) {
-  const { apiBaseUrl } = route.params;
+  const apiBaseUrl = API_BASE_URL;
   const [loading, setLoading] = useState(true);
   const [rawPredictions, setRawPredictions] = useState(null);
 
@@ -17,21 +19,19 @@ export default function PredictionScreen({ route, navigation }) {
   const fetchPredictions = useCallback(async () => {
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem('userToken');
+      const token = await getToken();
       if (!token) {
-        navigation.navigate('Login');
+        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         return;
       }
 
-      const response = await fetch(`${apiBaseUrl}/user/predictions`, {
+      const response = await apiFetch(`${apiBaseUrl}/user/predictions`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
       if (response.status === 401) {
-        navigation.navigate('Login');
         return;
       }
 

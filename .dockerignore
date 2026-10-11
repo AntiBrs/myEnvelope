@@ -1,0 +1,22 @@
+**
+!package.json
+!package-lock.json
+!app.json
+!App.js
+!index.js
+!config/
+!config/*.js
+!screens/
+!screens/*.js
+!assets/
+!assets/**
+!backend/
+!backend/*.py
+!backend/category_keywords.csv
+!backend/vendor_keywords.csv
+!backend/requirements.txt
+!docker/
+!docker/*.Dockerfile
+!docker/nginx.conf
+!docker/db-permissions.sql
+# Credentials, local data, .git, node_modules and backend/.env are never sent.

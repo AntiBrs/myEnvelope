@@ -1,6 +1,8 @@
+import { Alert } from '../config/alerts';
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { getToken } from '../config/session';
+import { API_BASE_URL, apiFetch } from '../config/api';
 import { useFocusEffect } from '@react-navigation/native';
 
 const CATEGORIES = {
@@ -9,7 +11,7 @@ const CATEGORIES = {
 };
 
 export default function PlanningScreen({ route, navigation }) {
-  const { apiBaseUrl } = route.params; // userId eltávolítva
+  const apiBaseUrl = API_BASE_URL;
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [viewDate, setViewDate] = useState(new Date());
@@ -26,29 +28,29 @@ export default function PlanningScreen({ route, navigation }) {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth() + 1;
     try {
-      const token = await AsyncStorage.getItem('userToken');
+      const token = await getToken();
       if (!token) {
-        navigation.navigate('Login');
+        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         return;
       }
 
       const headers = {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       };
 
       // Összehasonlító adatok lekérése (userId kikerült az URL-ből)
-      const compRes = await fetch(`${apiBaseUrl}/user/planning/compare?year=${year}&month=${month}`, { headers });
+      const compRes = await apiFetch(`${apiBaseUrl}/user/planning/compare?year=${year}&month=${month}`, { headers });
 
       if (compRes.status === 401) {
-        navigation.navigate('Login');
         return;
       }
+      if (!compRes.ok) throw new Error('Unable to load comparison');
       const compData = await compRes.json();
       setComparison(compData);
 
       // Terv lekérése (userId kikerült az URL-ből)
-      const planRes = await fetch(`${apiBaseUrl}/planning?year=${year}&month=${month}`, { headers });
+      const planRes = await apiFetch(`${apiBaseUrl}/planning?year=${year}&month=${month}`, { headers });
+      if (!planRes.ok) throw new Error('Unable to load plan');
       const planData = await planRes.json();
       if (planData.plan) setPlan(planData.plan);
 
@@ -67,12 +69,10 @@ export default function PlanningScreen({ route, navigation }) {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem('userToken');
-      const response = await fetch(`${apiBaseUrl}/planning`, {
+      const response = await apiFetch(`${apiBaseUrl}/planning`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           year: viewDate.getFullYear(),
@@ -82,10 +82,13 @@ export default function PlanningScreen({ route, navigation }) {
       });
 
       if (response.status === 401) {
-        navigation.navigate('Login');
         return;
       }
 
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Unable to save plan');
+      }
       setIsEditing(false);
       fetchData();
       Alert.alert("Success", "Plan saved!");

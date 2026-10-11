@@ -31,7 +31,7 @@ The project demonstrates:
 - Google Document AI integration for receipt entity extraction;
 - explainable keyword and fuzzy-matching logic for suggested categories;
 - adaptive forecasting that selects a baseline, seasonal-naive method, or SARIMA according to history length;
-- n8n orchestration with a Groq-hosted language model and a read-only financial query pattern;
+- authenticated n8n orchestration with a Groq-hosted model and bounded, user-scoped context;
 - environment-based secret management, automated tests, and CI validation.
 
 ## Product capabilities
@@ -59,17 +59,14 @@ flowchart TB
     Receipt[Receipt pipeline<br/>Google Document AI + fuzzy matching]
     N8N[n8n workflow]
     LLM[Groq-hosted language model]
-    ReadOnly[(Read-only financial query tool)]
 
     Mobile -->|HTTPS / JSON / Bearer JWT| API
     API --> Auth
     API -->|Parameterized SQL| DB
     API --> Forecast
     API --> Receipt
-    API -->|Question + JWT-derived userId| N8N
+    API -->|Question + bounded user-scoped context| N8N
     N8N --> LLM
-    N8N --> ReadOnly
-    ReadOnly --> DB
 ```
 
 The mobile client never connects directly to MySQL or to external AI services. Flask is the central trust boundary: it authenticates the request, derives the user identity from the JWT, applies application logic, and returns JSON responses.
@@ -131,7 +128,7 @@ The raw receipt image and extracted values are not printed to logs. The user rem
 - React Native 0.81 and React 19
 - Expo SDK 54
 - React Navigation
-- AsyncStorage for the local JWT session
+- SecureStore for native JWTs; browser tokens stay in memory
 - React Native Chart Kit
 - Expo Image Picker and Sharing
 
@@ -149,7 +146,7 @@ The raw receipt image and extracted values are not printed to logs. The user rem
 
 - n8n webhook workflow
 - Groq-hosted language model
-- MySQL select tool constrained by the authenticated user identifier
+- No model SQL access; fixed queries in Flask provide limited financial context
 
 ## Repository layout
 
@@ -172,14 +169,25 @@ myEnvelope/
 └── .github/workflows/ci.yml     # Backend tests and Expo web build
 ```
 
-## Quick start
+## Start everything with Docker
+
+Install Docker Desktop and Node.js 22, then run:
+
+```sh
+node scripts/setup.mjs
+docker compose --env-file .env.docker up --build -d --wait
+```
+
+Open **http://localhost:8080**. Local secrets are generated automatically; register your own account. See [Container setup](docs/CONTAINERS.md) for persistence, optional Document AI/n8n, and deployment boundaries.
+
+## Manual development setup
 
 ### Prerequisites
 
 - Node.js 20.19.4+ or 22.13+
 - npm 10+
 - Python 3.11+
-- MySQL 8+
+- MySQL 8+ and Redis 7+
 - Expo Go or an Android/iOS emulator
 
 Google Document AI, n8n, and Groq are optional integrations. The core authentication, transactions, statistics, planning, and forecasting features can be studied without publishing credentials.
@@ -245,7 +253,8 @@ Then open the project in Expo Go or choose an emulator from the Expo terminal in
 |---|---|---:|---|
 | GET | `/health` | No | Service health check |
 | POST | `/user` | No | Register a user |
-| POST | `/login` | No | Return a JWT access token |
+| POST | `/login` | No | Return a 30-minute JWT access token |
+| POST | `/logout` | JWT | Revoke the current session |
 | POST | `/expenses` | JWT | Store an expense |
 | POST | `/earnings` | JWT | Store an earning |
 | GET | `/categories` | JWT | Return supported categories |
@@ -276,19 +285,20 @@ Files matching environment files, credential JSON patterns, private keys, local 
 Run backend tests locally:
 
 ```bash
+pip install -r backend/requirements-dev.txt
 pytest
 ```
 
-The suite covers short-history baseline selection, seasonal-naive behavior, non-negative output, European price parsing, normalization, and fuzzy-match priority.
+The suite covers API validation, authentication, revocation, isolation, rollback, rate limits, external-service boundaries, and forecast/parser logic.
 
-GitHub Actions performs Python compilation and tests, plus a clean Expo web export.
+GitHub Actions performs backend tests, dependency audits, an Expo web export and a real Compose smoke test. See SECURITY.md for remaining upstream build-tool advisories.
 
 ## Engineering trade-offs and current limitations
 
 - SARIMA parameters are fixed rather than selected by rolling validation.
 - Missing monthly values are currently imputed to obtain a regular series; production experiments should compare zero-filling, interpolation, and domain-specific rules.
-- The assistant workflow is a demonstration. Production use requires a dedicated read-only database account, strict table allowlisting, result limits, audit logging, and prompt-injection defenses.
-- The prototype stores the JWT in AsyncStorage. A hardened release should use platform secure storage and short-lived tokens with refresh-token rotation.
+- The assistant sees only current-month totals and up to 50 recent records per transaction type; it cannot answer arbitrary historical queries.
+- Tokens expire after 30 minutes and logout revokes them in Redis. Native tokens use SecureStore; browser refresh requires login. Refresh tokens are not implemented.
 - Local development uses HTTP. Deployed environments must use HTTPS and a reverse proxy.
 - Receipt extraction depends on the configured Document AI processor and should be evaluated on representative receipts.
 - The project does not provide regulated financial advice.
@@ -296,12 +306,12 @@ GitHub Actions performs Python compilation and tests, plus a clean Expo web expo
 ## Roadmap
 
 - rolling-origin backtesting with MAE, RMSE, MAPE, and prediction intervals;
-- secure token storage and refresh-token lifecycle;
+- optional refresh-token rotation;
 - edit/delete transaction endpoints and audit history;
-- database migrations and containerized local development;
+- versioned database migrations and backup automation;
 - accessibility and localization improvements;
 - bank import/Open Banking integration;
-- stronger assistant query validation and observability;
+- assistant quality evaluation and observability;
 - automated end-to-end mobile tests.
 - Expo SDK major-version upgrade after compatibility testing of navigation, charts, and native modules.
 

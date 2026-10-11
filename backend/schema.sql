@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS Expenses (
   subcategory VARCHAR(80) NOT NULL,
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (expenseId),
+  CONSTRAINT chk_expense_amount CHECK (amount > 0),
   KEY idx_expenses_user_date (userId, date),
   CONSTRAINT fk_expenses_user
     FOREIGN KEY (userId) REFERENCES `User` (userId) ON DELETE CASCADE
@@ -41,6 +42,7 @@ CREATE TABLE IF NOT EXISTS Earnings (
   subcategory VARCHAR(80) NOT NULL,
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (earningId),
+  CONSTRAINT chk_earning_amount CHECK (amount > 0),
   KEY idx_earnings_user_date (userId, date),
   CONSTRAINT fk_earnings_user
     FOREIGN KEY (userId) REFERENCES `User` (userId) ON DELETE CASCADE
@@ -56,6 +58,8 @@ CREATE TABLE IF NOT EXISTS Planning (
   plannedAmount DECIMAL(12,2) NOT NULL DEFAULT 0,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (planningId),
+  CONSTRAINT chk_planning_amount CHECK (plannedAmount >= 0),
+  CONSTRAINT chk_planning_year CHECK (year BETWEEN 1900 AND 2100),
   UNIQUE KEY uq_plan_item (userId, year, month, category, type),
   CONSTRAINT fk_planning_user
     FOREIGN KEY (userId) REFERENCES `User` (userId) ON DELETE CASCADE,

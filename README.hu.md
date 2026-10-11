@@ -59,17 +59,14 @@ flowchart TB
     Receipt[Nyugtafolyamat<br/>Document AI + fuzzy illesztés]
     N8N[n8n workflow]
     LLM[Groq nyelvi modell]
-    ReadOnly[(Csak olvasási pénzügyi lekérdező)]
 
     Mobile -->|HTTPS / JSON / Bearer JWT| API
     API --> Auth
     API -->|Paraméterezett SQL| DB
     API --> Forecast
     API --> Receipt
-    API -->|Kérdés + JWT-ből származó userId| N8N
+    API -->|Kérdés + korlátozott saját pénzügyi adatok| N8N
     N8N --> LLM
-    N8N --> ReadOnly
-    ReadOnly --> DB
 ```
 
 A mobilalkalmazás nem csatlakozik közvetlenül sem a MySQL-adatbázishoz, sem a külső MI-szolgáltatásokhoz. A központi bizalmi határ a Flask backend: ellenőrzi a JWT-t, abból állapítja meg a felhasználót, végrehajtja az üzleti logikát, majd JSON-választ küld.
@@ -125,11 +122,11 @@ A nyugtakép és a felismert pénzügyi tartalom nem kerül debug naplóba. A fe
 
 ## Technológiák
 
-**Mobil:** React Native 0.81, React 19, Expo 54, React Navigation, AsyncStorage, Chart Kit, Expo Image Picker és Sharing.
+**Mobil:** React Native 0.81, React 19, Expo 54, React Navigation, SecureStore, Chart Kit, Expo Image Picker és Sharing.
 
 **Backend:** Python, Flask, Flask-JWT-Extended, bcrypt, MySQL Connector, pandas, NumPy, statsmodels/SARIMAX, RapidFuzz és Google Cloud Document AI.
 
-**MI-orchesztráció:** n8n webhook, Groq nyelvi modell és hitelesített felhasználóhoz kötött, csak olvasásra szánt MySQL-eszköz.
+**MI-orchesztráció:** n8n webhook, Groq nyelvi modell és az API által lekért, korlátozott saját pénzügyi kontextus. A modell nem kap adatbázis-eszközt.
 
 ## Mappaszerkezet
 
@@ -152,14 +149,25 @@ myEnvelope/
 └── .github/workflows/ci.yml     # Automatikus ellenőrzés
 ```
 
-## Gyors indítás
+## Indítás egy paranccsal, Dockerrel
+
+Docker Desktop és Node.js 22 telepítése után:
+
+```powershell
+node scripts/setup.mjs
+docker compose --env-file .env.docker up --build -d --wait
+```
+
+Nyisd meg a **http://localhost:8080** címet, és regisztrálj. A titkokat a setup helyben generálja. A részleteket, az opcionális MI-integrációkat és az adatok megőrzését a [konténeres útmutató](docs/CONTAINERS.hu.md) írja le.
+
+## Kézi fejlesztői indítás
 
 ### Előfeltételek
 
 - Node.js 20.19.4+ vagy 22.13+
 - npm 10+
 - Python 3.11+
-- MySQL 8+
+- MySQL 8+ és Redis 7+
 - Expo Go vagy Android/iOS-emulátor
 
 ### 1. Mobilalkalmazás
@@ -217,7 +225,8 @@ A teljes telepítéshez és az opcionális Google Document AI/n8n/Groq integrác
 |---|---|---:|---|
 | GET | `/health` | Nem | Állapotellenőrzés |
 | POST | `/user` | Nem | Regisztráció |
-| POST | `/login` | Nem | JWT kiadása |
+| POST | `/login` | Nem | 30 perces JWT kiadása |
+| POST | `/logout` | JWT | Aktuális munkamenet visszavonása |
 | POST | `/expenses` | JWT | Kiadás mentése |
 | POST | `/earnings` | JWT | Bevétel mentése |
 | GET | `/categories` | JWT | Kategóriák lekérése |
@@ -241,6 +250,7 @@ A `.gitignore` kizárja a környezeti fájlokat, privát kulcsokat, credential J
 ## Tesztek és CI
 
 ```bash
+pip install -r backend/requirements-dev.txt
 pytest
 ```
 
@@ -250,8 +260,8 @@ A tesztek ellenőrzik a rövid adatelőzmény alapmodelljét, a szezonális naiv
 
 - A SARIMA-paraméterek rögzítettek, nem gördülő validáció választja őket.
 - A hiányzó hónapok kitöltési stratégiáját valós adatokon össze kell hasonlítani más módszerekkel.
-- Az asszisztens demonstráció: élesben kötelező a külön read-only DB-fiók, a táblaengedélyezőlista, a sorlimit, a naplózás és a prompt injection elleni védelem.
-- A JWT jelenleg AsyncStorage-ba kerül; kiadott alkalmazásban platformszintű secure storage ajánlott.
+- Az asszisztens csak az aktuális havi összesítést és legfeljebb 50–50 legutóbbi kiadást/bevételt látja; a teljes előzményről nem tud minden kérdésre válaszolni.
+- A token 30 percig él, kijelentkezéskor visszavonódik. Mobilon SecureStore tárolja, böngészőben csak memóriában él; újratöltés után új belépés szükséges.
 - A helyi fejlesztés HTTP-t használ; telepítve HTTPS és reverse proxy szükséges.
 - A Document AI minőségét reprezentatív nyugtahalmazon kell mérni.
 - Az alkalmazás nem minősül pénzügyi tanácsadásnak.
@@ -259,12 +269,12 @@ A tesztek ellenőrzik a rövid adatelőzmény alapmodelljét, a szezonális naiv
 ## Továbbfejlesztési irányok
 
 - gördülő backtesting, MAE/RMSE/MAPE és predikciós intervallum;
-- biztonságos tokenkezelés és refresh token;
+- opcionális refresh-token rotáció;
 - tranzakciók módosítása/törlése és auditnapló;
-- adatbázis-migráció és konténerizált fejlesztői környezet;
+- verziózott adatbázis-migráció és automatizált mentések;
 - akadálymentesítés és lokalizáció;
 - banki import/Open Banking;
-- szigorúbb MI-lekérdezés-validáció és megfigyelhetőség;
+- az asszisztens válaszminőségének mérése és megfigyelhetőség;
 - mobil end-to-end tesztek.
 - Expo SDK főverzió-frissítés a navigáció, grafikonok és natív modulok kompatibilitási tesztje után.
 

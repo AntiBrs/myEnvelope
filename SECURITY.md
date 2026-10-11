@@ -1,97 +1,59 @@
 # Security and privacy
 
-## English
+## Implemented protections
 
-myEnvelope is an educational portfolio prototype. Do not use it for real financial data without a security review and deployment hardening.
+- User identity comes from verified JWTs, never from request `userId`.
+- Access tokens expire after 30 minutes. `POST /logout` revokes the current token in persistent Redis. Redis failure does not bypass revocation.
+- Native tokens use Expo SecureStore. Browser tokens stay in memory; reload requires login. Legacy plaintext AsyncStorage tokens are deleted.
+- New passwords require 12+ characters and at most 72 UTF-8 bytes (bcrypt's limit). Unknown users also undergo a bcrypt check. JWT placeholder/short secrets prevent startup.
+- Shared Redis rate limits cover login, registration, general traffic and expensive forecast/receipt/chat operations. There is no in-memory fail-open fallback in deployment.
+- Both expense entry paths use the same server validation: valid date, finite positive amount, at most two decimal places, supported category/subcategory. Planning validates every entry before writing.
+- Database units of work always close resources and roll back failed writes. SQL remains parameterized; profile responses exclude password hashes, recovery codes, phone numbers and birth dates.
+- Uploaded requests are bounded to 8 MiB; JPEG/PNG/PDF MIME types must match file signatures. This is format screening, not malware scanning. Document AI calls have a deadline and no automatic retries.
+- The assistant has **no database tool**. Flask supplies current-month totals and at most 50 recent rows from each transaction table for the authenticated user. Webhook authentication, timeouts, bounded responses and redirect rejection protect the service boundary. Prompt injection can still affect generated answers, but cannot grant the model database access.
+- API errors do not return internal exception details. Database/provider errors log exception types without raw personal field values. API responses use `Cache-Control: no-store`.
+- Compose exposes only the web port on loopback. MySQL/Redis are private, the API uses a restricted database account, and the API/web runtime filesystems are read-only. API and web run without root privileges.
+- The Docker build context is an allowlist of source files: secrets, repository history, uploads and local environments are excluded.
 
-### Public repository policy
+## Deployment boundaries
 
-The repository must never contain:
+The default stack is **local HTTP**, not an Internet-ready hosted service. Use HTTPS, secret management, tested backups, monitoring and a properly configured reverse proxy for public deployment. Never expose the API directly with `TRUST_PROXY=true`; the supplied Nginx proxy overwrites forwarding headers. A different proxy chain needs a corresponding trusted-hop configuration.
 
-- `.env` files or database passwords;
-- JWT secrets, Groq/API keys, webhook secrets, or access tokens;
-- Google service-account JSON files;
-- private network addresses tied to a contributor's environment;
-- real receipts, personal financial exports, database dumps, or user records;
-- signing keys, certificates, or mobile provisioning files.
+Browser memory storage limits token persistence, but does not eliminate XSS risk. Refresh tokens/rotation, account-wide session management, MFA and a recovery flow are not implemented. The legacy secure code remains hashed but is not a substitute for those features.
 
-Only `.env.example`, sanitized workflow exports, synthetic examples, and non-sensitive media belong in version control.
+Keep Redis persistent: losing the revocation store could make an otherwise unexpired revoked token valid again. Do not share the Redis service with untrusted applications. Rotate the JWT signing key if revocation data is lost in an incident.
 
-### Current protections
+Google Document AI and n8n/Groq are optional external data processors. Review access, retention, region and user consent before sending real financial data. Do not re-add model-controlled SQL. n8n execution-data saving is disabled in the example; administrators can change that, so review actual deployment settings.
 
-- bcrypt password hashing;
-- JWT-protected personal-data routes;
-- user identity derived from the verified token;
-- parameterized SQL in application routes;
-- minimal profile projection from `/user/summary`;
-- no receipt/entity content in debug logs;
-- server-only integration configuration;
-- bounded forecast horizon;
-- ignored credential, key, upload, database, cache, and build artifacts.
-- monthly Dependabot checks and a CI gate for critical npm advisories.
+## Dependency review — 2026-10-11
 
-### Required production work
+Compatible npm updates removed the critical `shell-quote` advisory and other available fixes. PostCSS is overridden to a patched compatible 8.5 release. The Expo 54-compatible worklets version is explicitly selected. Python runtime requirements passed `pip-audit` at the time of this change.
 
-- HTTPS everywhere and a production WSGI server;
-- secure mobile token storage, short token lifetime, refresh rotation, logout revocation;
-- strict request schemas, rate limiting, CSRF review, and account lockout;
-- secret manager and credential rotation;
-- MySQL TLS, least privilege, backups, migrations, encryption and audit trails;
-- signed/authenticated n8n requests and a private network path;
-- technically enforced read-only assistant access, table/column allowlists and row limits;
-- prompt-injection testing and prevention of sensitive result exfiltration;
-- Document AI retention/privacy review and regional processing;
-- dependency scanning, SAST, monitoring, incident response and recovery procedures.
+**The npm audit is not clean.** The Expo/React Native build dependency graph still reports high and moderate advisories, including:
 
-### Reporting
+- [braces recursion/denial of service](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm): no published patched release at review time; used by build-time file matching.
+- [node-forge signature verification](https://github.com/advisories/GHSA-86w9-cpqp-85rv): no published patched release at review time; used by Expo development/signing tooling.
+- [image-size parser denial of service](https://github.com/advisories/GHSA-5p2g-fcmc-qvqq): a patched 2.x release exists, but overriding the 1.x API broke the Expo 54 asset build in testing. Retained 1.x until a coordinated SDK/toolchain upgrade.
+- Transitive `sprintf-js` and `uuid` advisories remain in the build tooling.
 
-Please do not open a public issue containing a vulnerability, credential, receipt, or personal financial record. Use the repository owner's private GitHub contact/reporting channel instead.
+The deployed web image serves static assets and contains no Node runtime or npm tree. Receipt uploads go to Python/Document AI, not these Node parsers. This reduces runtime exposure; it does **not** mean the dependencies are fixed. Build only trusted source/assets, do not expose Metro/Expo development servers publicly, and review signing/OTA tooling before use. An SDK upgrade needs native compatibility tests, not `npm audit fix --force` (the audit suggested an incompatible Expo downgrade).
 
----
+CI retains the existing critical npm gate and prints the full audit report; Python dependency auditing and a real Compose smoke test were added. Resolve remaining advisories before claiming a clean security audit. Dependency state changes over time; rerun audits regularly.
 
-## Magyar
+## Secret handling and reporting
 
-A myEnvelope oktatási és portfóliócélú prototípus. Biztonsági felülvizsgálat és telepítési megerősítés nélkül ne használj benne valódi pénzügyi adatokat.
+Never commit environment files, service-account JSON, access tokens, real receipts, financial exports or database dumps. `.env.example` files are placeholders only. `scripts/setup.mjs` generates `.env.docker` locally without overwriting it; Windows permissions are inherited from the containing directory and must be restricted.
 
-### Publikus repó szabályai
+If a credential was ever committed or published, ignoring/removing it from the latest tree is insufficient: rotate it at its issuer. This change does not rewrite repository history or rotate external credentials.
 
-A repóba nem kerülhet:
+Do not post credentials, personal records or exploit details in public issues. Use the owner's private GitHub security/contact channel.
 
-- `.env` fájl vagy adatbázis-jelszó;
-- JWT-titok, API-kulcs, webhooktitok vagy hozzáférési token;
-- Google service account JSON;
-- a fejlesztő privát hálózatához kötött cím;
-- valódi nyugta, pénzügyi export, adatbázismentés vagy felhasználói rekord;
-- aláírókulcs, tanúsítvány vagy mobil provisioning fájl.
+## Magyar összefoglaló
 
-Csak `.env.example`, megtisztított workflow, szintetikus példa és nem érzékeny média verziókövethető.
+A javítás egységes szerveroldali validációt, pontos decimális pénzkezelést, hibánál rollbacket és kapcsolatlezárást, rövid életű és visszavonható JWT-t, SecureStore/memóriabeli tokentárolást, megosztott rate limitet és korlátozott fájlfeltöltést vezet be. Az asszisztens nem kap adatbázis-eszközt, csak a bejelentkezett felhasználó korlátozott pénzügyi adatait. A webhook külön titokkal hitelesített.
 
-### Jelenlegi védelmek
+A konténeres indítás helyi használatra készült. Nyilvános telepítéshez HTTPS, titokkezelés, mentések és felügyelet kell. A Redis-adatok elvesztése a még le nem járt tokenek visszavonását is elveszíti; ilyen incidensnél JWT-kulcsrotáció szükséges.
 
-- bcrypt jelszóhash;
-- JWT-vel védett személyes végpontok;
-- a felhasználóazonosító a hitelesített tokenből származik;
-- paraméterezett SQL;
-- minimális profilválasz a `/user/summary` végponton;
-- a nyugtatartalom nem kerül debug naplóba;
-- szerveroldali integrációs konfiguráció;
-- korlátozott predikciós időhorizont;
-- credential-, kulcs-, adatbázis-, feltöltés-, cache- és buildfájlok kizárása.
-- havi Dependabot-ellenőrzés és CI-kapu a kritikus npm sérülékenységekre.
+Az npm-vizsgálatban **maradtak magas és közepes besorolású upstream buildfüggőség-hibák**. Ezeket nem tüntettük el kivételekkel vagy nem kompatibilis csomagcserével. A kritikus shell-quote hiba és a kompatibilisen javítható függőségek frissültek; a fennmaradó tételeket a fenti hivatkozások és korlátok írják le. A webes futtatókonténerben nincs Node/Expo fejlesztőszerver. Ettől a buildkörnyezet továbbra is ellenőrzendő, és a projekt nem tekinthető teljesen auditáltnak.
 
-### Éles használat előtt szükséges
-
-- HTTPS és production WSGI szerver;
-- secure mobile storage, rövid tokenélet, refresh rotáció és visszavonás;
-- szigorú kérésvalidáció, rate limit és account lockout;
-- secret manager és kulcsrotáció;
-- MySQL TLS, minimális jogosultság, backup, migráció, titkosítás és audit;
-- aláírt n8n-kérések és privát hálózati kapcsolat;
-- technikailag kikényszerített read-only MI-hozzáférés, allowlist és sorlimit;
-- prompt injection és adatkiszivárgás elleni tesztelés;
-- Document AI adatmegőrzési és régiós felülvizsgálat;
-- függőségellenőrzés, SAST, monitoring és incidenskezelés.
-
-### Hibabejelentés
-
-Sérülékenységet, credentialt, nyugtát vagy pénzügyi adatot ne írj nyilvános issue-ba. Használd a repó tulajdonosának privát GitHub-kapcsolati vagy security reporting csatornáját.
+A korábban kiszivárgott kulcsokat a szolgáltatónál kell visszavonni; ez a módosítás nem írja át a Git-előzményt és nem forgat külső credentialöket. Telepítés: [magyar konténeres útmutató](docs/CONTAINERS.hu.md).

@@ -172,7 +172,7 @@ def parse_documentai_invoice(
         raw_document=raw_document
     )
 
-    result = client.process_document(request=request)
+    result = client.process_document(request=request, timeout=30, retry=None)
     return result.document
 
 

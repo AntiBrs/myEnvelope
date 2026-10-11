@@ -1,3 +1,4 @@
+import { Alert } from '../config/alerts';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -5,15 +6,14 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
   ScrollView,
   Modal,
   ActivityIndicator
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL, apiFetch } from '../config/api';
 
 export default function AddExpenseScreen({ route, navigation }) {
-  const { apiBaseUrl } = route.params || {};
+  const apiBaseUrl = API_BASE_URL;
 
   // Állapotok kezelése (típus, összeg, dátum, kategóriák)
   const [activeTab, setActiveTab] = useState('expenses');
@@ -66,16 +66,13 @@ export default function AddExpenseScreen({ route, navigation }) {
   // Kategóriák lekérése a backendről
   const fetchCategories = async () => {
     try {
-      const token = await AsyncStorage.getItem('userToken');
-      const response = await fetch(`${apiBaseUrl}/categories`, {
+      const response = await apiFetch(`${apiBaseUrl}/categories`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
       if (response.status === 401) {
-        navigation.navigate('Login');
         return;
       }
 
@@ -125,7 +122,7 @@ export default function AddExpenseScreen({ route, navigation }) {
 
   // Tranzakció mentése a szerverre
   const handleSave = async () => {
-    if (!amount || parseFloat(amount) <= 0) {
+    if (!amount || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
       Alert.alert('Error', 'Please enter a valid amount');
       return;
     }
@@ -141,27 +138,24 @@ export default function AddExpenseScreen({ route, navigation }) {
     setIsLoading(true);
 
     try {
-      const token = await AsyncStorage.getItem('userToken');
       const endpoint = activeTab === 'expenses' ? '/expenses' : '/earnings';
 
       const requestData = {
         date: dateString,
-        amount: parseFloat(amount),
+        amount,
         category: selectedCategory,
         subcategory: selectedSubcategory
       };
 
-      const response = await fetch(`${apiBaseUrl}${endpoint}`, {
+      const response = await apiFetch(`${apiBaseUrl}${endpoint}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestData),
       });
 
       if (response.status === 401) {
-        navigation.navigate('Login');
         return;
       }
 

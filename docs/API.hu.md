@@ -55,6 +55,14 @@ A válasz JWT-t ad. A további kérések fejléce:
 Authorization: Bearer <jwt-access-token>
 ```
 
+### `POST /logout`
+
+Érvényes JWT szükséges. A kijelentkezés a token lejártáig visszavonja azt. A token 30 perces; refresh token nincs.
+
+## Adatellenőrzés és korlátok
+
+Új jelszó: legalább 12 karakter, legfeljebb 72 UTF-8 bájt. Az `isAdult` a születési dátumból származik. A pénzérték véges, pozitív, legfeljebb két tizedesjegyű, DECIMAL(12,2)-be férő szám vagy decimális szöveg; tervnél nulla is lehet. Kategória/alkategória a `/categories` listából választható. A két kiadásmentési útvonal azonos validációt használ. Regisztráció és tranzakció létrehozása: 201; duplikált név: 409; túl nagy kérés: 413; rate limit: 429. JSON objektum szükséges. A feltöltés teljes mérete legfeljebb 8 MiB, JPEG/PNG/PDF kezdőazonosító-ellenőrzéssel.
+
 ## Tranzakciók
 
 ### `POST /expenses`
@@ -205,9 +213,9 @@ Viselkedés:
 }
 ```
 
-A Flask a kérdést és a JWT-ből származó felhasználóazonosítót küldi az n8n webhooknak. Konfiguráció nélkül `503`, elérhetetlen downstream szolgáltatásnál `502` választ ad.
+A Flask a legfeljebb 2000 karakteres kérdést, az aktuális havi összesítést és legfeljebb 50–50 legutóbbi bevételt/kiadást küld, kizárólag a hitelesített felhasználó adataiból. A webhook `X-MyEnvelope-Secret` hitelesítést használ. Konfiguráció nélkül 503, hibás külső válasznál 502 jár; a kliens csak az `output` szöveget kapja.
 
-A példa workflow az `n8n/workflow.example.json` fájlban található. A hitelesítő adatokat kizárólag az n8n-ben kell beállítani, külön read-only MySQL-fiókkal.
+A példa workflow az `n8n/workflow.example.json` fájlban található. Groq és Header Auth credential szükséges; adatbázis-eszköze nincs.
 
 ## Állapotellenőrzés
 

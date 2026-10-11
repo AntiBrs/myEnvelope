@@ -10,7 +10,7 @@ Base URL in local development: `http://localhost:5000`.
 - Protected routes require `Authorization: Bearer <JWT>`.
 - User identity is read from the verified JWT, not trusted from a request body or query parameter.
 - Dates use ISO `YYYY-MM-DD`; forecast months use `YYYY-MM` in responses.
-- Monetary values are numeric and interpreted as RON by the current UI.
+- Money accepts decimal strings or JSON numbers, is finite and positive (zero is allowed in plans), has at most two decimal places, and fits DECIMAL(12,2). Decimal responses may be strings.
 - Typical statuses: `200` success, `400` invalid request, `401` missing/invalid token, `404` missing resource, `500` internal error, `502/503` unavailable integration.
 
 ## Authentication
@@ -64,6 +64,14 @@ Use the token on later requests:
 ```http
 Authorization: Bearer <jwt-access-token>
 ```
+
+### `POST /logout`
+
+Requires a valid bearer token. Revokes that token until expiry. Tokens last 30 minutes; no refresh token is issued.
+
+## Validation and limits
+
+Passwords for new accounts require at least 12 characters and at most 72 UTF-8 bytes. `isAdult` is derived from the birth date. Categories/subcategories are checked against `/categories`; dates use strict ISO format and years 1900–2100. Both expense routes share one validator. Registration and new transactions return 201; duplicate registration 409, oversized requests 413, rate limits 429. JSON bodies must be objects. Receipt requests are capped at 8 MiB with JPEG/PNG/PDF signature checks. Redis failure fails authentication closed (503).
 
 ## Transactions
 
@@ -253,9 +261,11 @@ The backend generates total and category-level forecasts for both expenses and e
 }
 ```
 
-The Flask backend sends the question and JWT-derived user ID to the configured n8n webhook. It returns `503` when the integration is not configured and `502` when the downstream workflow is unreachable.
+Flask sends the question (up to 2000 characters), current-month totals and at most 50 recent records per transaction table, all scoped to the verified identity. The webhook requires `X-MyEnvelope-Secret`. Redirects and malformed/oversized responses are rejected; only a string `output` is returned. Unconfigured integration returns 503; upstream failure returns 502.
 
-The example workflow is under `n8n/workflow.example.json`. Configure credentials only inside n8n and use a dedicated read-only MySQL account.
+The example workflow is under `n8n/workflow.example.json`. Configure Groq and Header Auth credentials in n8n. There is no database tool.
+
+Forecast history is aggregated in SQL and limited to the 10 years before the requested start month; future/current forecast-month observations are excluded.
 
 ## Health
 
@@ -268,4 +278,4 @@ The example workflow is under `n8n/workflow.example.json`. Configure credentials
 }
 ```
 
-This lightweight endpoint intentionally exposes no database or secret configuration.
+This lightweight endpoint intentionally exposes no database or secret configuration. `/ready` additionally checks MySQL and Redis.

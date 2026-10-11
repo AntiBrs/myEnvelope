@@ -2,11 +2,13 @@
 
 [Magyar változat](SETUP.hu.md) · [Back to README](../README.md)
 
+For the simplest complete local setup, use [Docker Compose](CONTAINERS.md). The manual setup below is for development.
+
 ## 1. Requirements
 
 - Node.js 20.19.4+ or 22.13+ and npm
-- Python 3.11 or newer
-- MySQL 8 or newer
+- Python 3.12
+- MySQL 8 or newer and a running Redis 7+ service
 - Expo Go, Android Studio emulator, or iOS Simulator
 - optional: Google Cloud project with a Document AI Invoice Parser
 - optional: n8n and a Groq account for the assistant
@@ -28,7 +30,7 @@ EXPO_PUBLIC_API_BASE_URL=http://localhost:5000
 
 Address selection:
 
-- web or iOS Simulator: `localhost` is normally sufficient;
+- iOS Simulator: `localhost` is normally sufficient; for web, use the Compose same-origin proxy at `/api` (the API deliberately enables no cross-origin access);
 - Android emulator: use `http://10.0.2.2:5000` when required by the emulator network;
 - physical device: use the development machine's LAN address and ensure both devices share a network.
 
@@ -83,6 +85,7 @@ Required values:
 ```dotenv
 JWT_SECRET_KEY=<long-random-value>
 DB_PASSWORD=<application-user-password>
+REDIS_URL=redis://127.0.0.1:6379/0
 ```
 
 Recommended secret generation:
@@ -121,30 +124,31 @@ DOCUMENTAI_PROCESSOR_ID=your-processor-id
 
 The key file must never be committed. Prefer workload identity or a managed secret mechanism for deployed environments.
 
-Without these values, receipt analysis returns a controlled server error; other features can still run.
+Without these values, receipt analysis returns 503; other features can still run.
 
 ## 6. n8n and Groq assistant (optional)
 
 1. Import `n8n/workflow.example.json` into n8n.
-2. Create a Groq credential inside n8n.
-3. Create a dedicated read-only MySQL account.
-4. Assign the credentials to the imported nodes.
-5. Set a new webhook path inside n8n.
-6. Configure only the resulting URL in `backend/.env`:
+2. Create a Groq credential and configure a supported model.
+3. Create a Header Auth credential for `X-MyEnvelope-Secret` with a generated secret of at least 32 characters; attach it to the webhook.
+4. Select a webhook path and activate the workflow. No database credentials are needed.
+5. Configure both the URL and matching secret in `backend/.env`:
 
 ```dotenv
 N8N_WEBHOOK_URL=http://localhost:5678/webhook/your-generated-path
+N8N_WEBHOOK_SECRET=<same-generated-secret-as-header-auth>
 ```
 
-Do not export credentials from n8n. Before production use, enforce table allowlisting, row limits, timeouts, and audit logging.
+Do not export credentials. The API sends bounded user-scoped context; the model has no SQL tool. Use HTTPS for remote n8n servers. See [Containers](CONTAINERS.md) for privacy and retention details.
 
 ## 7. Tests
 
 ```bash
+pip install -r backend/requirements-dev.txt
 pytest
 ```
 
-The current tests require no database or cloud credentials because they target pure forecast and parsing logic.
+Unit/security tests mock external dependencies and require no live database or cloud credentials. The separate Compose smoke test exercises real MySQL and Redis.
 
 ## 8. Common problems
 
@@ -157,7 +161,7 @@ The current tests require no database or cloud credentials because they target p
 
 ### `401 Unauthorized`
 
-- log in again and confirm that AsyncStorage contains the new access token;
+- log in again; native tokens use SecureStore and browser tokens stay in memory;
 - verify that `JWT_SECRET_KEY` did not change while the client kept an older token;
 - check that the header format is exactly `Bearer <token>`.
 
@@ -177,4 +181,4 @@ The current tests require no database or cloud credentials because they target p
 
 ### Assistant returns `503`
 
-Set `N8N_WEBHOOK_URL`. A `502` means the configured workflow could not be reached or did not respond before the timeout.
+Set `N8N_WEBHOOK_URL` and `N8N_WEBHOOK_SECRET`. A `502` means the configured workflow could not be reached or did not respond before the timeout.

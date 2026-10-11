@@ -1,7 +1,8 @@
+import { Alert } from '../config/alerts';
 import React, { useState, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Alert, ScrollView, TextInput, Modal, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, ScrollView, TextInput, Modal, FlatList, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL, apiFetch } from '../config/api';
 
 // Kategória és alkategória struktúra definiálása
 const EXPENSE_STRUCTURE = {
@@ -18,7 +19,7 @@ const EXPENSE_STRUCTURE = {
 const CATEGORIES = Object.keys(EXPENSE_STRUCTURE);
 
 export default function ScannerScreen({ route, navigation }) {
-  const { apiBaseUrl } = route.params;
+  const apiBaseUrl = API_BASE_URL;
 
   // Állapotok: fotó, betöltés, szerkesztési mód és választók
   const [photo, setPhoto] = useState(null);
@@ -71,24 +72,25 @@ export default function ScannerScreen({ route, navigation }) {
     setLoading(true);
 
     try {
-      const token = await AsyncStorage.getItem('userToken');
       const formData = new FormData();
-      formData.append('invoice', {
-        uri: photo.uri,
-        type: 'image/jpeg',
-        name: 'invoice.jpg',
-      });
+      const mimeType = photo.mimeType || 'image/jpeg';
+      if (Platform.OS === 'web') {
+        const file = photo.file || await (await fetch(photo.uri)).blob();
+        formData.append('invoice', file, photo.fileName || 'receipt.jpg');
+      } else {
+        formData.append('invoice', {
+          uri: photo.uri,
+          type: mimeType,
+          name: photo.fileName || 'receipt.jpg',
+        });
+      }
 
-      const response = await fetch(`${apiBaseUrl}/invoices/analyze`, {
+      const response = await apiFetch(`${apiBaseUrl}/invoices/analyze`, {
         method: 'POST',
         body: formData,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
       });
 
       if (response.status === 401) {
-        navigation.navigate('Login');
         return;
       }
 
@@ -129,28 +131,25 @@ export default function ScannerScreen({ route, navigation }) {
 
   // Ellenőrzött adatok végleges mentése
   const saveFinalExpense = async () => {
-    if (!editedData.amount || !editedData.date) {
-      Alert.alert("Error", "Amount and Date are required!");
+    if (!Number.isFinite(Number(editedData.amount)) || Number(editedData.amount) <= 0 || !editedData.date) {
+      Alert.alert("Error", "A positive amount and a valid date are required!");
       return;
     }
 
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem('userToken');
-      const response = await fetch(`${apiBaseUrl}/expenses/manual`, {
+      const response = await apiFetch(`${apiBaseUrl}/expenses/manual`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           ...editedData,
-          amount: parseFloat(editedData.amount)
+          amount: editedData.amount
         }),
       });
 
       if (response.status === 401) {
-        navigation.navigate('Login');
         return;
       }
 

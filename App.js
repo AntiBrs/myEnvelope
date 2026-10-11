@@ -1,5 +1,6 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import { setUnauthorizedHandler } from './config/api';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
 import AddExpenseScreen from './screens/AddExpenseScreen';
@@ -12,10 +13,16 @@ import ScannerScreen from './screens/ScannerScreen';
 import ChatScreen from './screens/ChatScreen';
 
 const Stack = createStackNavigator();
+const navigationRef = createNavigationContainerRef();
+setUnauthorizedHandler(() => {
+  if (navigationRef.isReady()) {
+    navigationRef.resetRoot({ index: 0, routes: [{ name: 'Login' }] });
+  }
+});
 
 export default function App() {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName="Login">
         <Stack.Screen
           name="Home"

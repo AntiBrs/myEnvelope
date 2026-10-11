@@ -1,778 +1,393 @@
+"""Authenticated budgeting API. Run behind a TLS proxy outside local development."""
+
+import datetime as dt
+import json
 import os
 from pathlib import Path
-
-from dotenv import load_dotenv
-from flask import Flask, request, jsonify
-import mysql.connector
-import datetime
-import requests
-
-from .forecast import forecast_user_monthly
-from .invoice_parser import parse_invoice_to_expense_records
-from flask_jwt_extended import (
-    JWTManager,
-    create_access_token,
-    jwt_required,
-    get_jwt_identity
-)
+from urllib.parse import urlsplit
 
 import bcrypt
+import mysql.connector
+import requests
+from dotenv import load_dotenv
+from flask import Blueprint, Flask, current_app, jsonify, request
+from flask_jwt_extended import create_access_token, get_jwt, get_jwt_identity, jwt_required
+from redis.exceptions import RedisError
+from werkzeug.exceptions import BadGateway, BadRequest, HTTPException, ServiceUnavailable
 
-load_dotenv(Path(__file__).with_name(".env"))
+from . import validation as v
+from .db import database
+from .forecast import forecast_user_monthly
+from .invoice_parser import parse_invoice_to_expense_records
+from .security import configure, limiter, login_limit_key, revoke_token, user_limit_key
+
+api = Blueprint("api", __name__)
+# Unknown accounts still pay the same bcrypt cost as existing accounts.
+DUMMY_HASH = bcrypt.hashpw(b"unused-password-for-timing", bcrypt.gensalt())
 
 
-def required_env(name):
-    """Return a required environment variable without providing unsafe defaults."""
-    value = os.getenv(name)
-    if not value:
-        raise RuntimeError(
-            f"Missing required environment variable: {name}. "
-            "Copy backend/.env.example to backend/.env and configure it."
+def create_app(test_config=None):
+    load_dotenv(Path(__file__).with_name(".env"))
+    app = Flask(__name__)
+    app.config.from_mapping(
+        JWT_SECRET_KEY=os.getenv("JWT_SECRET_KEY", ""),
+        REDIS_URL=os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0"),
+        N8N_WEBHOOK_URL=os.getenv("N8N_WEBHOOK_URL", ""),
+        N8N_WEBHOOK_SECRET=os.getenv("N8N_WEBHOOK_SECRET", ""),
+        TRUST_PROXY=os.getenv("TRUST_PROXY", "false").lower() == "true",
+        DB_CONFIG={
+            "host": os.getenv("DB_HOST", "127.0.0.1"),
+            "port": int(os.getenv("DB_PORT", "3306")),
+            "user": os.getenv("DB_USER", "myenvelope_app"),
+            "password": os.getenv("DB_PASSWORD", ""),
+            "database": os.getenv("DB_NAME", "myenvelope"),
+            "connection_timeout": 5,
+        },
+    )
+    if test_config:
+        app.config.update(test_config)
+    configure(app)
+    app.register_blueprint(api)
+
+    @app.errorhandler(HTTPException)
+    def http_error(error):
+        response = error.get_response()
+        response.data = app.json.dumps({"error": error.description})
+        response.content_type = "application/json"
+        return response
+
+    @app.errorhandler(RedisError)
+    @app.errorhandler(mysql.connector.Error)
+    def unavailable(error):
+        # Database exceptions can contain the offending personal field value.
+        app.logger.error("Dependency unavailable: %s", type(error).__name__)
+        return jsonify(error="Service temporarily unavailable"), 503
+
+    @app.errorhandler(Exception)
+    def unexpected(error):
+        app.logger.error("Request failed: %s", type(error).__name__)
+        return jsonify(error="Internal server error"), 500
+
+    return app
+
+
+@api.get("/health")
+@limiter.exempt
+def health():
+    return jsonify(status="ok", service="myEnvelope API")
+
+
+@api.get("/ready")
+@limiter.exempt
+def ready():
+    current_app.extensions["session_store"].ping()
+    with database() as cursor:
+        cursor.execute("SELECT 1")
+        cursor.fetchone()
+    return jsonify(status="ready")
+
+
+@api.post("/login")
+@limiter.limit("10 per minute")
+@limiter.limit("20 per 15 minutes", key_func=login_limit_key)
+def login():
+    data = v.json_object()
+    username = v.text(data.get("userName"), "userName", 80)
+    password = v.password(data.get("password"))
+    with database() as cursor:
+        cursor.execute("SELECT userId, userName, password FROM User WHERE userName = %s", (username,))
+        user = cursor.fetchone()
+    stored_hash = user["password"].encode() if user else DUMMY_HASH
+    if not bcrypt.checkpw(password.encode(), stored_hash) or not user:
+        return jsonify(message="Invalid username or password"), 401
+    return jsonify(
+        token=create_access_token(identity=str(user["userId"])),
+        userId=user["userId"], userName=user["userName"],
+    )
+
+
+@api.post("/logout")
+@jwt_required()
+def logout():
+    revoke_token(get_jwt())
+    return jsonify(message="Signed out")
+
+
+@api.post("/user")
+@limiter.limit("5 per hour")
+def create_user():
+    data = v.json_object()
+    username = v.text(data.get("userName"), "userName", 80, 3)
+    password = v.password(data.get("password"), registering=True)
+    name = v.text(data.get("name"), "name", 120)
+    phone = v.text(data.get("telephoneNumber"), "telephoneNumber", 40)
+    secure_code = v.text(data.get("secureCode"), "secureCode", 32, 4, strip=False)
+    if len(secure_code.encode()) > 72:
+        raise BadRequest("secureCode must not exceed 72 UTF-8 bytes")
+    birthday = v.date(data.get("dateOfBirth"), "dateOfBirth")
+    today = dt.date.today()
+    if birthday > today:
+        raise BadRequest("dateOfBirth cannot be in the future")
+    age = today.year - birthday.year - ((today.month, today.day) < (birthday.month, birthday.day))
+    hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    hashed_code = bcrypt.hashpw(secure_code.encode(), bcrypt.gensalt()).decode()
+    try:
+        with database(write=True) as cursor:
+            cursor.execute(
+                "INSERT INTO User (isAdult, secureCode, userName, password, name, telephoneNumber, dateOfBirth) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (age >= 18, hashed_code, username, hashed, name, phone, birthday),
+            )
+            user_id = cursor.lastrowid
+    except mysql.connector.IntegrityError as error:
+        if error.errno == 1062:
+            return jsonify(error="Unable to register with these details"), 409
+        raise
+    return jsonify(message="User created", userId=user_id), 201
+
+
+def save_transaction(kind):
+    values = v.transaction(v.json_object(), kind)
+    # Table name comes from this fixed mapping, never from request input.
+    table = {"expenses": "Expenses", "earnings": "Earnings"}[kind]
+    with database(write=True) as cursor:
+        cursor.execute(
+            f"INSERT INTO {table} (userId, date, amount, category, subcategory) VALUES (%s, %s, %s, %s, %s)",
+            (get_jwt_identity(), *values),
         )
-    return value
+    return jsonify(message="Transaction saved"), 201
 
 
-app = Flask(__name__)
-app.config["JWT_SECRET_KEY"] = required_env("JWT_SECRET_KEY")
-app.config["JWT_TOKEN_LOCATION"] = ["headers"]
-jwt = JWTManager(app)
+@api.post("/expenses")
+@api.post("/expenses/manual")
+@jwt_required()
+def add_expense():
+    return save_transaction("expenses")
 
-db_config = {
-    "host": os.getenv("DB_HOST", "127.0.0.1"),
-    "port": int(os.getenv("DB_PORT", "3306")),
-    "user": os.getenv("DB_USER", "myenvelope_app"),
-    "password": required_env("DB_PASSWORD"),
-    "database": os.getenv("DB_NAME", "myenvelope"),
+
+@api.post("/earnings")
+@jwt_required()
+def add_earning():
+    return save_transaction("earnings")
+
+
+@api.get("/categories")
+@jwt_required()
+def get_categories():
+    return jsonify(v.CATEGORIES)
+
+
+@api.post("/invoices/analyze")
+@jwt_required()
+@limiter.limit("5 per minute", key_func=user_limit_key, override_defaults=False)
+def analyze_invoice():
+    upload = request.files.get("invoice")
+    if upload is None:
+        raise BadRequest("No invoice file provided")
+    content = upload.read()
+    signatures = {
+        "image/jpeg": content.startswith(b"\xff\xd8\xff"),
+        "image/png": content.startswith(b"\x89PNG\r\n\x1a\n"),
+        "application/pdf": content.startswith(b"%PDF-"),
+    }
+    if not signatures.get(upload.mimetype, False):
+        raise BadRequest("Upload a JPEG, PNG or PDF with a matching content type")
+    if not os.getenv("DOCUMENTAI_PROJECT_ID") or not os.getenv("DOCUMENTAI_PROCESSOR_ID"):
+        raise ServiceUnavailable("Receipt processing is not configured")
+    try:
+        records = parse_invoice_to_expense_records(content, mime_type=upload.mimetype)
+    except Exception as error:
+        current_app.logger.error("Receipt provider failed: %s", type(error).__name__)
+        raise BadGateway("Receipt analysis failed; please try again or enter the expense manually") from None
+    return jsonify(message="Analysis complete", records=records)
+
+
+def totals(cursor, user_id, condition="", args=()):
+    values = {}
+    for table, label in (("Earnings", "totalEarnings"), ("Expenses", "totalExpenses")):
+        cursor.execute(f"SELECT COALESCE(SUM(amount), 0) AS total FROM {table} WHERE userId = %s {condition}", (user_id, *args))
+        values[label] = cursor.fetchone()["total"]
+    values["balance"] = values["totalEarnings"] - values["totalExpenses"]
+    return values
+
+
+@api.get("/user/summary")
+@jwt_required()
+def get_user_summary():
+    user_id = get_jwt_identity()
+    with database() as cursor:
+        cursor.execute("SELECT userId, userName, name FROM User WHERE userId = %s", (user_id,))
+        user = cursor.fetchone()
+        result = totals(cursor, user_id)
+    return jsonify(user=user, **result)
+
+
+# All dynamic SQL fragments below are server-owned constants.
+RANGES = {
+    "today": ("AND DATE(date) = CURDATE()", "%Y-%m-%d"),
+    "this_week": ("AND YEARWEEK(date, 1) = YEARWEEK(CURDATE(), 1)", "%Y-%m-%d"),
+    "this_month": ("AND YEAR(date) = YEAR(CURDATE()) AND MONTH(date) = MONTH(CURDATE())", "%Y-%m-%d"),
+    "this_year": ("AND YEAR(date) = YEAR(CURDATE())", "%Y-%m"),
+    "all": ("", "%Y-%m"),
 }
 
 
-# Adatbázis kapcsolat segédfüggvény
-def get_db_connection():
-    return mysql.connector.connect(**db_config)
-
-
-@app.route("/health", methods=["GET"])
-def health():
-    """Lightweight health endpoint that does not expose configuration details."""
-    return jsonify({"status": "ok", "service": "myEnvelope API"})
-
-
-@app.route("/login", methods=["POST"])
-def login():
-
-    data = request.get_json(silent=True) or {}
-
-    username = data.get("userName")
-    password = data.get("password")
-
-    if not username or not password:
-        return jsonify({"message": "userName and password are required"}), 400
-
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT userId,userName,password
-        FROM User
-        WHERE userName=%s
-    """, (username,))
-
-    user = cursor.fetchone()
-
-    cursor.close()
-    conn.close()
-
-    if not user:
-        return jsonify({"message":"Invalid username or password"}),401
-
-    if not bcrypt.checkpw(
-            password.encode(),
-            user["password"].encode()
-    ):
-        return jsonify({"message":"Invalid username or password"}),401
-
-    token = create_access_token(
-        identity=str(user["userId"])
-    )
-
-    return jsonify({
-        "token":token,
-        "userId":user["userId"],
-        "userName":user["userName"]
-    })
-
-
-# Új felhasználó létrehozása
-@app.route('/user', methods=['POST'])
-def create_user():
-    data = request.get_json(silent=True) or {}
-    required_fields = [
-        'isAdult', 'secureCode', 'userName', 'password',
-        'name', 'telephoneNumber', 'dateOfBirth'
-    ]
-    missing = [field for field in required_fields if field not in data]
-    if missing:
-        return jsonify({'error': 'Missing required fields', 'fields': missing}), 400
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    hashed = bcrypt.hashpw(data["password"].encode(),bcrypt.gensalt()).decode()
-    hashed_secure_code = bcrypt.hashpw(
-        data["secureCode"].encode(), bcrypt.gensalt()
-    ).decode()
-
-    cursor.execute("""
-        INSERT INTO User (isAdult, secureCode, userName, password, name, telephoneNumber, dateOfBirth)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-    """, (data['isAdult'], hashed_secure_code, data['userName'], hashed,
-          data['name'], data['telephoneNumber'], data['dateOfBirth']))
-
-    conn.commit()
-    user_id = cursor.lastrowid
-    cursor.close()
-    conn.close()
-    return jsonify({'message': 'User created', 'userId': user_id})
-
-# Bevétel hozzáadása
-@app.route('/expenses', methods=['POST'])
+@api.get("/user/statistics")
+@api.get("/user/statistics/<time_range>")
 @jwt_required()
-def add_expense():
-    data = request.json
-    conn = get_db_connection()
-    cursor = conn.cursor()
+def get_statistics(time_range="all"):
+    if time_range not in RANGES:
+        raise BadRequest("Invalid time range")
+    condition, date_format = RANGES[time_range]
     user_id = get_jwt_identity()
-    cursor.execute("""
-        INSERT INTO Expenses (userId, date, amount, category, subcategory)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (user_id, data['date'], data['amount'],
-          data.get('category', 'Other'), data.get('subcategory', 'Other')))
-
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'message': 'Expense added'})
-
-# Új bevétel hozzáadása kategóriákkal
-@app.route('/earnings', methods=['POST'])
-@jwt_required()
-def add_earning():
-    data = request.json
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    user_id = get_jwt_identity()
-    cursor.execute("""
-        INSERT INTO Earnings (userId, date, amount, category, subcategory)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (user_id, data['date'], data['amount'],
-          data.get('category', 'Income'), data.get('subcategory', 'General')))
-
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'message': 'Earning added'})
-
-# Kategóriák lekérése
-@app.route('/categories', methods=['GET'])
-@jwt_required()
-def get_categories():
-    categories = { #kep feldolgozas szamlabol ----------------------------
-        'expenses': {
-            'Food': ['Groceries', 'Restaurants', 'Takeaway'],
-            'Transportation': ['Fuel', 'Public Transport', 'Taxi', 'Maintenance'],
-            'Housing': ['Rent', 'Utilities', 'Mortgage', 'Maintenance'],
-            'Entertainment': ['Movies', 'Concerts', 'Hobbies', 'Subscriptions'],
-            'Healthcare': ['Medicines', 'Doctor', 'Insurance', 'Dental'],
-            'Education': ['Tuition', 'Books', 'Courses', 'Supplies'],
-            'Shopping': ['Clothing', 'Electronics', 'Home', 'Gifts'],
-            'Other': ['Other']
-        },
-        'earnings': {
-            'Salary': ['Regular', 'Bonus', 'Overtime'],
-            'Business': ['Sales', 'Services', 'Freelance'],
-            'Investments': ['Dividends', 'Interest', 'Capital Gains'],
-            'Gifts': ['Birthday', 'Holiday', 'Other'],
-            'Other': ['Other']
-        }
-    }
-    return jsonify(categories)
+    with database() as cursor:
+        result = totals(cursor, user_id, condition)
+        result["timeRange"] = time_range
+        for table, key in (("Expenses", "expenses"), ("Earnings", "earnings")):
+            cursor.execute(
+                f"SELECT category, subcategory, SUM(amount) AS total FROM {table} "
+                f"WHERE userId = %s {condition} GROUP BY category, subcategory ORDER BY total DESC", (user_id,),
+            )
+            result[key + "ByCategory"] = cursor.fetchall()
+            cursor.execute(
+                f"SELECT DATE_FORMAT(date, %s) AS period, SUM(amount) AS total FROM {table} "
+                f"WHERE userId = %s {condition} GROUP BY period ORDER BY period", (date_format, user_id),
+            )
+            rows = cursor.fetchall()
+            result[key + "ByTime"] = rows
+            if time_range == "all":
+                result["monthly" + table] = [{"month": row["period"], "total": row["total"]} for row in rows]
+    return jsonify(result)
 
 
-@app.route('/invoices/analyze', methods=['POST'])
-@jwt_required()
-def analyze_invoice():
-    if 'invoice' not in request.files:
-        return jsonify({'error': 'No invoice file provided.'}), 400
-
-    invoice_file = request.files['invoice']
-    invoice_bytes = invoice_file.read()
-    mime_type = invoice_file.mimetype or 'image/jpeg'
-
-    try:
-        # Meghívjuk az AI-t
-        expense_records = parse_invoice_to_expense_records(
-            invoice_bytes,
-            mime_type=mime_type
-        )
-
-        # Ha az AI nem talált semmit, adjunk vissza egy üres vázat
-        if not expense_records:
-            expense_records = [{
-                'amount': 0,
-                'date': datetime.date.today().isoformat(),
-                'vendor': 'Unknown',
-                'category': 'Shopping',
-                'subcategory': 'General'
-            }]
-        else:
-            # Biztosítjuk, hogy minden mező létezik a válaszban
-            for rec in expense_records:
-                if 'category' not in rec: rec['category'] = 'Shopping'
-                if 'subcategory' not in rec: rec['subcategory'] = rec.get('vendor', 'General')
-
-        return jsonify({
-            'message': 'Analysis complete',
-            'records': expense_records
-        }), 200
-    except Exception as exc:
-        app.logger.exception("Invoice analysis failed")
-        return jsonify({'error': 'Analysis failed.'}), 500
-
-@app.route('/expenses/manual', methods=['POST'])
-@jwt_required()
-def add_manual_expense():
-    data = request.get_json()
-    try:
-        # Kinyerjük az adatokat
-        user_id = get_jwt_identity()
-        date = data.get('date')
-        amount = float(data.get('amount'))
-        category = data.get('category', 'Other')
-        subcategory = data.get('subcategory', 'Other')
-
-
-
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        # Ellenőrizzük a tábla nevét
-        cursor.execute("""
-            INSERT INTO Expenses (userId, date, amount, category, subcategory)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (user_id, date, amount, category, subcategory))
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return jsonify({'message': 'Expense saved successfully'}), 201
-    except Exception as e:
-        app.logger.exception("Saving an expense failed")
-        return jsonify({'error': 'Internal server error'}), 500
-
-
-
-# Statisztikák kategóriánként
-@app.route('/user/statistics', methods=['GET'])
-@jwt_required()
-def get_statistics(user_id):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    user_id = get_jwt_identity()
-    # Összesítések
-    cursor.execute("SELECT SUM(amount) AS totalEarnings FROM Earnings WHERE userId = %s", (user_id,))
-    earnings = cursor.fetchone()['totalEarnings'] or 0
-
-    cursor.execute("SELECT SUM(amount) AS totalExpenses FROM Expenses WHERE userId = %s", (user_id,))
-    expenses = cursor.fetchone()['totalExpenses'] or 0
-
-    # Kategóriánkénti kiadások
-    cursor.execute("""
-        SELECT category, subcategory, SUM(amount) AS total
-        FROM Expenses
-        WHERE userId = %s
-        GROUP BY category, subcategory
-        ORDER BY total DESC
-    """, (user_id,))
-    expenses_by_category = cursor.fetchall()
-
-    # Kategóriánkénti bevételek
-    cursor.execute("""
-        SELECT category, subcategory, SUM(amount) AS total
-        FROM Earnings
-        WHERE userId = %s
-        GROUP BY category, subcategory
-        ORDER BY total DESC
-    """, (user_id,))
-    earnings_by_category = cursor.fetchall()
-
-    # Havi bontás
-    cursor.execute("""
-        SELECT DATE_FORMAT(date, '%%Y-%%m') AS month,
-               SUM(amount) AS total
-        FROM Expenses
-        WHERE userId = %s
-        GROUP BY DATE_FORMAT(date, '%%Y-%%m')
-        ORDER BY month
-    """, (user_id,))
-    monthly_expenses = cursor.fetchall()
-
-    cursor.execute("""
-        SELECT DATE_FORMAT(date, '%%Y-%%m') AS month,
-               SUM(amount) AS total
-        FROM Earnings
-        WHERE userId = %s
-        GROUP BY DATE_FORMAT(date, '%%Y-%%m')
-        ORDER BY month
-    """, (user_id,))
-    monthly_earnings = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    return jsonify({
-        'totalEarnings': float(earnings),
-        'totalExpenses': float(expenses),
-        'balance': float(earnings - expenses),
-        'expensesByCategory': expenses_by_category,
-        'earningsByCategory': earnings_by_category,
-        'monthlyExpenses': monthly_expenses,
-        'monthlyEarnings': monthly_earnings
-    })
-
-
-# Statisztikák különböző időintervallumokhoz
-@app.route('/user/statistics/<time_range>', methods=['GET'])
-@jwt_required()
-def get_statistics_by_time_range(time_range):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        user_id = get_jwt_identity()
-        # Időintervallum beállítása
-        if time_range == 'today':
-            date_format = "DATE_FORMAT(date, '%Y-%m-%d')"
-            group_by = "DATE_FORMAT(date, '%Y-%m-%d')"
-            date_condition = "AND DATE(date) = CURDATE()"
-            category_date_condition = "AND DATE(date) = CURDATE()"
-        elif time_range == 'this_week':
-            date_format = "DATE_FORMAT(date, '%Y-%m-%d')"
-            group_by = "DATE_FORMAT(date, '%Y-%m-%d')"
-            date_condition = "AND YEARWEEK(date, 1) = YEARWEEK(CURDATE(), 1)"
-            category_date_condition = "AND YEARWEEK(date, 1) = YEARWEEK(CURDATE(), 1)"
-        elif time_range == 'this_month':
-            date_format = "DATE_FORMAT(date, '%Y-%m-%d')"
-            group_by = "DATE_FORMAT(date, '%Y-%m-%d')"
-            date_condition = "AND YEAR(date) = YEAR(CURDATE()) AND MONTH(date) = MONTH(CURDATE())"
-            category_date_condition = "AND YEAR(date) = YEAR(CURDATE()) AND MONTH(date) = MONTH(CURDATE())"
-        elif time_range == 'this_year':
-            date_format = "DATE_FORMAT(date, '%Y-%m')"
-            group_by = "DATE_FORMAT(date, '%Y-%m')"
-            date_condition = "AND YEAR(date) = YEAR(CURDATE())"
-            category_date_condition = "AND YEAR(date) = YEAR(CURDATE())"
-        else:
-            return jsonify({'error': 'Invalid time range. Use: today, this_week, this_month, this_year'}), 400
-
-        # Kiadások lekérése
-        cursor.execute(f"""
-            SELECT
-                {date_format} as period,
-                SUM(amount) AS total
-            FROM Expenses
-            WHERE userId = %s {date_condition}
-            GROUP BY {group_by}
-            ORDER BY period
-        """, (user_id,))
-        expenses_by_time = cursor.fetchall()
-
-        # Bevételek lekérése
-        cursor.execute(f"""
-            SELECT
-                {date_format} as period,
-                SUM(amount) AS total
-            FROM Earnings
-            WHERE userId = %s {date_condition}
-            GROUP BY {group_by}
-            ORDER BY period
-        """, (user_id,))
-        earnings_by_time = cursor.fetchall()
-
-        # Kategóriánkénti összesítések
-        cursor.execute(f"""
-            SELECT
-                category,
-                subcategory,
-                SUM(amount) AS total
-            FROM Expenses
-            WHERE userId = %s {category_date_condition}
-            GROUP BY category, subcategory
-            ORDER BY total DESC
-        """, (user_id,))
-        expenses_by_category = cursor.fetchall()
-
-        cursor.execute(f"""
-            SELECT
-                category,
-                subcategory,
-                SUM(amount) AS total
-            FROM Earnings
-            WHERE userId = %s {category_date_condition}
-            GROUP BY category, subcategory
-            ORDER BY total DESC
-        """, (user_id,))
-        earnings_by_category = cursor.fetchall()
-
-        # Összesítések
-        cursor.execute(f"SELECT SUM(amount) AS totalEarnings FROM Earnings WHERE userId = %s {category_date_condition}", (user_id,))
-        earnings_result = cursor.fetchone()
-        earnings = earnings_result['totalEarnings'] if earnings_result and earnings_result['totalEarnings'] is not None else 0
-
-        cursor.execute(f"SELECT SUM(amount) AS totalExpenses FROM Expenses WHERE userId = %s {category_date_condition}", (user_id,))
-        expenses_result = cursor.fetchone()
-        expenses = expenses_result['totalExpenses'] if expenses_result and expenses_result['totalExpenses'] is not None else 0
-
-        cursor.close()
-        conn.close()
-
-        return jsonify({
-            'timeRange': time_range,
-            'totalEarnings': float(earnings),
-            'totalExpenses': float(expenses),
-            'balance': float(earnings - expenses),
-            'expensesByTime': expenses_by_time,
-            'earningsByTime': earnings_by_time,
-            'expensesByCategory': expenses_by_category,
-            'earningsByCategory': earnings_by_category
-        })
-
-    except Exception as e:
-        app.logger.exception("Statistics request failed")
-        return jsonify({'error': 'Internal server error'}), 500
-
-
-# Felhasználó pénzügyi adatai
-@app.route('/user/summary', methods=['GET'])
-@jwt_required()
-def get_user_summary():
-    conn = get_db_connection()
-    user_id = get_jwt_identity()
-    cursor = conn.cursor(dictionary=True)
-
-    # Return only profile fields required by the home screen. Password hashes,
-    # recovery codes, phone numbers and birth dates never leave this boundary.
-    cursor.execute(
-        "SELECT userId, userName, name FROM User WHERE userId = %s",
-        (user_id,),
-    )
-    user = cursor.fetchone()
-
-    cursor.execute("SELECT SUM(amount) AS totalEarnings FROM Earnings WHERE userId = %s", (user_id,))
-    earnings = cursor.fetchone()['totalEarnings'] or 0
-
-    cursor.execute("SELECT SUM(amount) AS totalExpenses FROM Expenses WHERE userId = %s", (user_id,))
-    expenses = cursor.fetchone()['totalExpenses'] or 0
-
-    cursor.close()
-    conn.close()
-
-    return jsonify({
-        'user': user,
-        'totalEarnings': earnings,
-        'totalExpenses': expenses,
-        'balance': earnings - expenses
-    })
-
-
-@app.route('/planning', methods=['POST'])
+@api.post("/planning")
 @jwt_required()
 def save_planning():
-    data = request.json
-    user_id = get_jwt_identity()
-    year = data.get('year')
-    month = data.get('month')
-    plan = data.get('plan')
+    year, month, plan = v.planning(v.json_object())
+    with database(write=True) as cursor:
+        for kind, entries in plan.items():
+            for category, amount in entries.items():
+                cursor.execute(
+                    "INSERT INTO Planning (userId, year, month, category, type, plannedAmount) "
+                    "VALUES (%s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE plannedAmount = VALUES(plannedAmount)",
+                    (get_jwt_identity(), year, month, category, "expense" if kind == "expenses" else "earning", amount),
+                )
+    return jsonify(message="Planning saved successfully")
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
 
-    try:
-        # Iterálunk a kiadásokon
-        for category, amount in plan['expenses'].items():
-            cursor.execute("""
-                INSERT INTO Planning (userId, year, month, category, type, plannedAmount)
-                VALUES (%s, %s, %s, %s, 'expense', %s)
-                ON DUPLICATE KEY UPDATE plannedAmount = VALUES(plannedAmount)
-            """, (user_id, year, month, category, amount))
-
-        # Iterálunk a bevételeken
-        for category, amount in plan['earnings'].items():
-            cursor.execute("""
-                INSERT INTO Planning (userId, year, month, category, type, plannedAmount)
-                VALUES (%s, %s, %s, %s, 'earning', %s)
-                ON DUPLICATE KEY UPDATE plannedAmount = VALUES(plannedAmount)
-            """, (user_id, year, month, category, amount))
-
-        conn.commit()
-        return jsonify({'message': 'Planning saved successfully'}), 200
-    except Exception as e:
-        conn.rollback()
-        app.logger.exception("Saving a plan failed")
-        return jsonify({'error': 'Internal server error'}), 500
-    finally:
-        cursor.close()
-        conn.close()
-
-# Terv és éves statisztika lekérése (GET)
-@app.route('/planning', methods=['GET'])
+@api.get("/planning")
 @jwt_required()
 def get_planning():
-    user_id = get_jwt_identity()
-    year = request.args.get('year')
-    month = request.args.get('month')
-
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    try:
-        # 1. Adott havi terv lekérése
-        cursor.execute("""
-            SELECT category, type, plannedAmount
-            FROM Planning
-            WHERE userId = %s AND year = %s AND month = %s
-        """, (user_id, year, month))
-        rows = cursor.fetchall()
-
-        # Alapértelmezett struktúra felépítése (ha nincs adat, 0-val tér vissza)
-        plan = {'expenses': {}, 'earnings': {}}
-        for row in rows:
-            target = 'expenses' if row['type'] == 'expense' else 'earnings'
-            plan[target][row['category']] = str(row['plannedAmount'])
-
-        # 2. Éves összesített statisztika (Éves tervezett kiadások összege)
-        cursor.execute("""
-            SELECT SUM(plannedAmount) as totalPlanned
-            FROM Planning
-            WHERE userId = %s AND year = %s AND type = 'expense'
-        """, (user_id, year))
-        yearly_res = cursor.fetchone()
-        yearly_total = float(yearly_res['totalPlanned']) if yearly_res['totalPlanned'] else 0
-
-        return jsonify({
-            'plan': plan,
-            'yearlyStats': {
-                'totalPlanned': yearly_total
-            }
-        }), 200
-
-    except Exception as e:
-        app.logger.exception("Loading a plan failed")
-        return jsonify({'error': 'Internal server error'}), 500
-    finally:
-        cursor.close()
-        conn.close()
+    year, month = v.year_month(request.args)
+    plan = {kind: {cat: "0.00" for cat in cats} for kind, cats in v.CATEGORIES.items()}
+    with database() as cursor:
+        cursor.execute("SELECT category, type, plannedAmount FROM Planning WHERE userId = %s AND year = %s AND month = %s", (get_jwt_identity(), year, month))
+        for row in cursor.fetchall():
+            plan["expenses" if row["type"] == "expense" else "earnings"][row["category"]] = str(row["plannedAmount"])
+        cursor.execute("SELECT COALESCE(SUM(plannedAmount), 0) AS total FROM Planning WHERE userId = %s AND year = %s AND type = 'expense'", (get_jwt_identity(), year))
+        yearly_total = cursor.fetchone()["total"]
+    return jsonify(plan=plan, yearlyStats={"totalPlanned": float(yearly_total)})
 
 
-@app.route('/user/planning/compare', methods=['GET'])
+@api.get("/user/planning/compare")
 @jwt_required()
 def compare_planning():
-    year = request.args.get('year', type=int)
-    month = request.args.get('month', type=int)
-    user_id = get_jwt_identity()
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    year, month = v.year_month(request.args)
+    with database() as cursor:
+        cursor.execute("SELECT category, plannedAmount FROM Planning WHERE userId = %s AND year = %s AND month = %s AND type = 'expense'", (get_jwt_identity(), year, month))
+        planned = {row["category"]: float(row["plannedAmount"]) for row in cursor.fetchall()}
+        cursor.execute("SELECT category, SUM(amount) AS total FROM Expenses WHERE userId = %s AND YEAR(date) = %s AND MONTH(date) = %s GROUP BY category", (get_jwt_identity(), year, month))
+        actual = {row["category"]: float(row["total"]) for row in cursor.fetchall()}
+    return jsonify([
+        {"category": cat, "planned": planned.get(cat, 0), "actual": actual.get(cat, 0),
+         "remaining": planned.get(cat, 0) - actual.get(cat, 0),
+         "percent": actual.get(cat, 0) / planned[cat] * 100 if planned.get(cat, 0) > 0 else 0}
+        for cat in v.CATEGORIES["expenses"]
+    ])
 
-    # 1. Lekérjük a tervezett összegeket
-    cursor.execute("""
-        SELECT category, plannedAmount
-        FROM Planning
-        WHERE userId = %s AND year = %s AND month = %s AND type = 'expense'
-    """, (user_id, year, month))
-    planned_data = {row['category']: float(row['plannedAmount']) for row in cursor.fetchall()}
 
-    # 2. Lekérjük a tényleges költéseket az adott hónapra
-    cursor.execute("""
-        SELECT category, SUM(amount) as actualAmount
-        FROM Expenses
-        WHERE userId = %s AND YEAR(date) = %s AND MONTH(date) = %s
-        GROUP BY category
-    """, (user_id, year, month))
-    actual_data = {row['category']: float(row['actualAmount']) for row in cursor.fetchall()}
-
-    # 3. Összefésüljük az adatokat a megadott kategóriák alapján
-    categories = ['Food', 'Transportation', 'Housing', 'Entertainment', 'Healthcare', 'Education', 'Shopping', 'Other']
-    comparison = []
-
-    for cat in categories:
-        planned = planned_data.get(cat, 0)
-        actual = actual_data.get(cat, 0)
-        comparison.append({
-            'category': cat,
-            'planned': planned,
-            'actual': actual,
-            'remaining': planned - actual,
-            'percent': (actual / planned * 100) if planned > 0 else 0
-        })
-
-    cursor.close()
-    conn.close()
-    return jsonify(comparison)
-
-@app.route('/user/predictions', methods=['GET'])
+@api.get("/user/predictions")
 @jwt_required()
+@limiter.limit("5 per minute", key_func=user_limit_key, override_defaults=False)
 def get_predictions():
-    user_id = get_jwt_identity()
-    start_date_arg = request.args.get('startDate')
-    months = request.args.get('months', default=12, type=int)
+    months = v.integer(request.args.get("months", "12"), "months", 1, 24)
+    start = v.date(request.args.get("startDate", dt.date.today().replace(day=1).isoformat()), "startDate").replace(day=1)
+    result = {"startDate": start.isoformat(), "months": months}
+    histories = {}
+    with database() as cursor:
+        for table in ("Expenses", "Earnings"):
+            # Bound model size and exclude observations from/after the forecast.
+            cursor.execute(
+                f"SELECT DATE_FORMAT(date, '%Y-%m-01') AS date, SUM(amount) AS amount, category FROM {table} "
+                "WHERE userId = %s AND date < %s AND date >= DATE_SUB(%s, INTERVAL 10 YEAR) "
+                "GROUP BY DATE_FORMAT(date, '%Y-%m-01'), category ORDER BY date", (get_jwt_identity(), start, start),
+            )
+            histories[table] = cursor.fetchall()
+    for table, kind in (("Expenses", "expense"), ("Earnings", "earning")):
+        history = [{**row, "amount": float(row["amount"])} for row in histories[table]]
 
-    if months is None or months < 1 or months > 24:
-        return jsonify({'error': 'months must be between 1 and 24'}), 400
-
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    try:
-        if start_date_arg:
-            try:
-                start_date = datetime.datetime.strptime(start_date_arg, '%Y-%m-%d').date()
-            except ValueError:
-                return jsonify({'error': 'startDate must use YYYY-MM-DD format'}), 400
-        else:
-            today = datetime.date.today()
-            start_date = today.replace(day=1)
-
-        # Lekérjük az összes kiadást kategóriánként
-        cursor.execute("""
-            SELECT date, amount, category
-            FROM Expenses
-            WHERE userId = %s
-            ORDER BY date
-        """, (user_id,))
-        all_expenses = cursor.fetchall()
-
-        # Lekérjük az összes bevételt kategóriánként
-        cursor.execute("""
-            SELECT date, amount, category
-            FROM Earnings
-            WHERE userId = %s
-            ORDER BY date
-        """, (user_id,))
-        all_earnings = cursor.fetchall()
-
-        # Teljes kiadások és bevételek előrejelzése
-        expenses_history = [{'date': row['date'], 'amount': float(row['amount']), 'category': 'total'} for row in all_expenses]
-        earnings_history = [{'date': row['date'], 'amount': float(row['amount']), 'category': 'total'} for row in all_earnings]
-
-        # SARIMA előrejelzés az összes kiadásra és bevételre
-        try:
-            expense_preds = forecast_user_monthly(expenses_history, 'total', start_date, months)
-        except Exception:
-            app.logger.exception("Total expense forecast failed")
-            expense_preds = None
-
-        try:
-            earning_preds = forecast_user_monthly(earnings_history, 'total', start_date, months)
-        except Exception:
-            app.logger.exception("Total earning forecast failed")
-            earning_preds = None
-
-        # Kategóriánkénti előrejelzések
-        categories_expense = {}
-        categories_earning = {}
-
-        if all_expenses:
-            unique_categories = set(row['category'] for row in all_expenses)
-            for cat in unique_categories:
-                cat_data = [{'date': row['date'], 'amount': float(row['amount']), 'category': cat}
-                           for row in all_expenses if row['category'] == cat]
-                try:
-                    forecast_result = forecast_user_monthly(cat_data, cat, start_date, months)
-                    if forecast_result is not None:
-                        categories_expense[cat] = forecast_result
-                except Exception:
-                    app.logger.exception("Expense category forecast failed")
-                    categories_expense[cat] = None
-
-        if all_earnings:
-            unique_categories = set(row['category'] for row in all_earnings)
-            for cat in unique_categories:
-                cat_data = [{'date': row['date'], 'amount': float(row['amount']), 'category': cat}
-                           for row in all_earnings if row['category'] == cat]
-                try:
-                    forecast_result = forecast_user_monthly(cat_data, cat, start_date, months)
-                    if forecast_result is not None:
-                        categories_earning[cat] = forecast_result
-                except Exception:
-                    app.logger.exception("Earning category forecast failed")
-                    categories_earning[cat] = None
-
-        def serialize(df):
-            if df is None:
+        def forecast(records, category):
+            frame = forecast_user_monthly(records, category, start, months)
+            if frame is None:
                 return []
-            return [
-                {
-                    'month': row['date'].strftime('%Y-%m'),
-                    'predictedAmount': float(row['predicted']),
-                    'category': row.get('category', 'Unknown') if 'category' in df.columns else 'Unknown'
-                }
-                for _, row in df.iterrows()
-            ]
+            return [{"month": row["date"].strftime("%Y-%m"), "predictedAmount": float(row["predicted"]), "category": category} for _, row in frame.iterrows()]
 
-        def serialize_categories(category_dict):
-            result = {}
-            for cat, df in category_dict.items():
-                result[cat] = serialize(df)
-            return result
-
-        return jsonify({
-            'startDate': start_date.strftime('%Y-%m-%d'),
-            'months': months,
-            'expensePredictions': serialize(expense_preds),
-            'earningPredictions': serialize(earning_preds),
-            'expensePredictionsByCategory': serialize_categories(categories_expense),
-            'earningPredictionsByCategory': serialize_categories(categories_earning)
-        })
-    except Exception as e:
-        app.logger.exception("Prediction request failed")
-        return jsonify({'error': 'Internal server error'}), 500
-    finally:
-        cursor.close()
-        conn.close()
+        result[kind + "Predictions"] = forecast([{**row, "category": "total"} for row in history], "total")
+        result[kind + "PredictionsByCategory"] = {
+            cat: forecast(history, cat) for cat in v.CATEGORIES[table.lower()]
+            if any(row["category"] == cat for row in history)
+        }
+    return jsonify(result)
 
 
+def assistant_context():
+    """No model-generated SQL: disclose only fixed, user-scoped projections."""
+    result = {"currency": "RON", "period": "current calendar month", "recentLimit": 50}
+    with database() as cursor:
+        result["totals"] = totals(cursor, get_jwt_identity(), RANGES["this_month"][0])
+        for table in ("Expenses", "Earnings"):
+            cursor.execute(
+                f"SELECT date, amount, category, subcategory FROM {table} WHERE userId = %s ORDER BY date DESC, "
+                f"{'expenseId' if table == 'Expenses' else 'earningId'} DESC LIMIT 50", (get_jwt_identity(),),
+            )
+            result[table.lower()] = cursor.fetchall()
+    # Decimal/date values must be JSON serializable without float rounding.
+    return json.loads(current_app.json.dumps(result))
 
-@app.route('/chat', methods=['POST'])
+
+@api.post("/chat")
 @jwt_required()
+@limiter.limit("5 per minute", key_func=user_limit_key, override_defaults=False)
 def chat():
-    data = request.json
-    user_id = get_jwt_identity()
-    question = data.get("question")
-
-    webhook_url = os.getenv("N8N_WEBHOOK_URL")
-    if not webhook_url:
-        return jsonify({"error": "Chat integration is not configured"}), 503
-
+    question = v.text(v.json_object().get("question"), "question", 2000)
+    url = current_app.config["N8N_WEBHOOK_URL"]
+    secret = current_app.config["N8N_WEBHOOK_SECRET"]
+    if not url or not secret:
+        raise ServiceUnavailable("Chat integration is not configured")
+    parsed = urlsplit(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password or parsed.fragment:
+        raise ServiceUnavailable("Invalid chat integration configuration")
+    context = assistant_context()
     try:
-        response = requests.post(
-            webhook_url,
-            json={
-                "userId": user_id,
-                "question": question
-            },
-            timeout=30
-        )
+        with requests.post(
+            url, json={"question": question, "budgetContext": context},
+            headers={"X-MyEnvelope-Secret": secret}, timeout=(5, 30), allow_redirects=False, stream=True,
+        ) as response:
+            if response.status_code != 200:
+                raise BadGateway("Chat service failed")
+            content = bytearray()
+            for chunk in response.iter_content(4096):
+                content.extend(chunk)
+                if len(content) > 64 * 1024:
+                    raise BadGateway("Chat response is too large")
+            data = json.loads(content)
+            output = data.get("output") if isinstance(data, dict) else None
+            if not isinstance(output, str) or not output.strip() or len(output) > 16000:
+                raise BadGateway("Invalid chat response")
+            return jsonify(output=output)
+    except (requests.RequestException, ValueError):
+        raise BadGateway("Chat service unavailable") from None
 
-        try:
-            return jsonify(response.json())
-        except:
-            return jsonify({"output": response.text})
 
-    except Exception as e:
-        app.logger.exception("Chat integration failed")
-        return jsonify({"error": "Chatbot unreachable"}), 502
-
-
-if __name__ == '__main__':
-    app.run(
-        host=os.getenv("FLASK_HOST", "0.0.0.0"),
-        port=int(os.getenv("FLASK_PORT", "5000")),
-        debug=os.getenv("FLASK_DEBUG", "false").lower() == "true",
-    )
+if __name__ == "__main__":
+    create_app().run(host=os.getenv("FLASK_HOST", "127.0.0.1"), port=int(os.getenv("FLASK_PORT", "5000")), debug=False)

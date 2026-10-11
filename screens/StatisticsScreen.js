@@ -1,14 +1,15 @@
+import { Alert } from '../config/alerts';
 import React, { useState, useEffect, useCallback,useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, Dimensions, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Dimensions, RefreshControl, TouchableOpacity } from 'react-native';
 import { BarChart, PieChart } from 'react-native-chart-kit';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL, apiFetch } from '../config/api';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 export default function StatisticsScreen({ route, navigation }) {
-  const { apiBaseUrl } = route.params || {};
+  const apiBaseUrl = API_BASE_URL;
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [timeRange, setTimeRange] = useState('this_month');
@@ -37,19 +38,17 @@ export default function StatisticsScreen({ route, navigation }) {
 
   const fetchStatistics = useCallback(async () => {
     try {
-      const token = await AsyncStorage.getItem('userToken');
-      const response = await fetch(`${apiBaseUrl}/user/statistics/${timeRange}`, {
+      const response = await apiFetch(`${apiBaseUrl}/user/statistics/${timeRange}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
       if (response.status === 401) {
-        navigation.navigate('Login');
         return;
       }
 
+      if (!response.ok) throw new Error('Unable to load statistics');
       const data = await response.json();
       setStats(data);
     } catch (error) {

@@ -2,11 +2,13 @@
 
 [English version](SETUP.md) · [Vissza a README-hez](../README.hu.md)
 
+A legegyszerűbb teljes helyi indításhoz használd a [Docker Compose útmutatót](CONTAINERS.hu.md). Az alábbi kézi telepítés fejlesztéshez való.
+
 ## 1. Előfeltételek
 
 - Node.js 20.19.4+ vagy 22.13+ és npm
-- Python 3.11+
-- MySQL 8+
+- Python 3.12
+- MySQL 8+ és futó Redis 7+
 - Expo Go, Android-emulátor vagy iOS Simulator
 - opcionálisan Google Cloud Document AI Invoice Parser
 - opcionálisan n8n és Groq-fiók
@@ -28,7 +30,7 @@ EXPO_PUBLIC_API_BASE_URL=http://localhost:5000
 
 Címválasztás:
 
-- web vagy iOS Simulator: általában `localhost`;
+- iOS Simulator: általában `localhost`; webhez a Compose azonos eredetű `/api` proxyját használd (az API nem engedélyez tetszőleges cross-origin kéréseket);
 - Android-emulátor: szükség esetén `http://10.0.2.2:5000`;
 - fizikai telefon: a fejlesztői számítógép helyi hálózati címe, közös hálózaton.
 
@@ -81,6 +83,7 @@ Kötelező értékek:
 ```dotenv
 JWT_SECRET_KEY=<hosszu-veletlen-ertek>
 DB_PASSWORD=<alkalmazasfelhasznalo-jelszava>
+REDIS_URL=redis://127.0.0.1:6379/0
 ```
 
 Biztonságos JWT-titok generálása:
@@ -123,24 +126,26 @@ A kulcsfájlt soha ne commitold. Telepített környezetben inkább workload iden
 
 1. Importáld az `n8n/workflow.example.json` fájlt.
 2. Az n8n-ben hozz létre Groq credentialt.
-3. Hozz létre külön read-only MySQL-fiókot.
-4. Rendeld hozzá a credentialöket a node-okhoz.
-5. Generálj új webhook útvonalat.
-6. A backendben csak az URL-t állítsd be:
+3. Hozz létre Header Auth credentialt `X-MyEnvelope-Secret` fejlécnévvel és legalább 32 karakteres generált titokkal.
+4. Rendeld a webhookhoz; állítsd be a Groq credentialt és modellt. Nem kell MySQL-credential.
+5. Válassz új webhookútvonalat és aktiváld a workflow-t.
+6. A backendben az URL-t és az egyező titkot állítsd be:
 
 ```dotenv
 N8N_WEBHOOK_URL=http://localhost:5678/webhook/sajat-webhook-utvonal
+N8N_WEBHOOK_SECRET=<a-header-auth-credentiallel-egyezo-generalt-titok>
 ```
 
-Az n8n credential store tartalmát ne exportáld. Éles használat előtt kell táblaengedélyezőlista, sorlimit, timeout és auditnapló.
+Az n8n credential store tartalmát ne exportáld. A modell csak az API által lekért, korlátozott saját pénzügyi adatokat látja, nem kap SQL-eszközt. Távoli n8n esetén HTTPS kell; részletek a [konténeres útmutatóban](CONTAINERS.hu.md).
 
 ## 7. Tesztek
 
 ```bash
+pip install -r backend/requirements-dev.txt
 pytest
 ```
 
-A jelenlegi egységtesztek nem igényelnek adatbázist vagy felhős credentialt, mert tiszta predikciós és feldolgozófüggvényeket ellenőriznek.
+Az egység- és biztonsági tesztek helyettesítik a külső függőségeket; nem kell élő adatbázis vagy felhős credential. A külön Compose smoke teszt valódi MySQL/Redis szolgáltatást használ.
 
 ## 8. Gyakori problémák
 
@@ -172,4 +177,4 @@ A jelenlegi egységtesztek nem igényelnek adatbázist vagy felhős credentialt,
 
 ### Az asszisztens `503` választ ad
 
-Állítsd be az `N8N_WEBHOOK_URL` értékét. A `502` azt jelenti, hogy a konfigurált workflow nem volt elérhető vagy timeout történt.
+Állítsd be az `N8N_WEBHOOK_URL` és `N8N_WEBHOOK_SECRET` értékét. A `502` azt jelenti, hogy a konfigurált workflow nem volt elérhető vagy timeout történt.

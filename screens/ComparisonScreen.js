@@ -1,9 +1,11 @@
+import { Alert } from '../config/alerts';
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { getToken } from '../config/session';
+import { API_BASE_URL, apiFetch } from '../config/api';
 
 export default function ComparisonScreen({ route, navigation }) {
-  const { apiBaseUrl } = route.params;
+  const apiBaseUrl = API_BASE_URL;
   const [loading, setLoading] = useState(true);
 
   const [planning, setPlanning] = useState({ expenses: {} });
@@ -20,29 +22,28 @@ export default function ComparisonScreen({ route, navigation }) {
     const month = now.getMonth() + 1;
 
     try {
-      const token = await AsyncStorage.getItem('userToken');
+      const token = await getToken();
       if (!token) {
-        navigation.navigate('Login');
+        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         return;
       }
 
       const headers = {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       };
 
       // Csak a szükséges adatokat kérjük le
       const [planRes, predRes, statRes] = await Promise.all([
-        fetch(`${apiBaseUrl}/planning?year=${year}&month=${month}`, { headers }),
-        fetch(`${apiBaseUrl}/user/predictions`, { headers }),
-        fetch(`${apiBaseUrl}/user/statistics/this_month`, { headers })
+        apiFetch(`${apiBaseUrl}/planning?year=${year}&month=${month}`, { headers }),
+        apiFetch(`${apiBaseUrl}/user/predictions`, { headers }),
+        apiFetch(`${apiBaseUrl}/user/statistics/this_month`, { headers })
       ]);
 
       if (planRes.status === 401 || predRes.status === 401 || statRes.status === 401) {
-        navigation.navigate('Login');
         return;
       }
 
+      if (!planRes.ok || !predRes.ok || !statRes.ok) throw new Error('Unable to load comparison');
       const planData = await planRes.json();
       const predData = await predRes.json();
       const statData = await statRes.json();

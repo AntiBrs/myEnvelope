@@ -10,7 +10,7 @@ myEnvelope uses a client–server architecture with a React Native mobile client
 flowchart TB
     subgraph Client[Mobile client]
       UI[React Native screens]
-      Session[AsyncStorage session]
+      Session[SecureStore / browser memory]
       Charts[Charts and comparisons]
     end
 
@@ -42,7 +42,6 @@ flowchart TB
     Parser --> DocumentAI
     Chat --> N8N
     N8N --> Groq
-    N8N -->|read-only query pattern| MySQL
     MySQL --> Charts
 ```
 
@@ -95,9 +94,9 @@ No raw receipt content or extracted entity text is logged by the public implemen
 
 ### Assistant adapter
 
-The `/chat` route forwards only the question and the JWT-derived user identifier to an n8n webhook. n8n connects the Groq-hosted model to a MySQL select tool. Credentials remain inside n8n and are represented only by placeholders in the exported example workflow.
+The `/chat` route uses fixed, parameterized queries scoped to the verified JWT identity. It forwards the question, current-month totals, and at most 50 recent records per transaction table to an authenticated n8n webhook. The Groq model has no SQL tool or database credentials.
 
-The workflow is a demonstrator. A deployment must enforce the read-only guarantee technically, not only through prompt text: use a dedicated read-only DB account, restrict tables/columns, cap returned rows, validate parameters, and audit tool calls.
+The workflow cannot access data outside this supplied context. Prompt injection can still distort answers; the model is not an authorization boundary. Remote webhooks need HTTPS, and execution-data retention is disabled by default.
 
 ## Key data flows
 
@@ -136,11 +135,11 @@ The comparison screen performs three concurrent GET requests: plan, current-mont
 
 | Boundary | Current control | Production hardening |
 |---|---|---|
-| Mobile → Flask | JWT in Authorization header | HTTPS, secure token storage, refresh rotation, rate limits |
+| Mobile → Flask | SecureStore/memory, 30-minute JWT, Redis revocation and rate limits | HTTPS, optional refresh rotation |
 | Flask → MySQL | Parameterized SQL and user scoping | Least-privilege account, TLS, migrations, audit logs |
 | Flask → Document AI | Server-side credentials | Restricted service account, retention review, regional processor |
-| Flask → n8n | Server-only webhook URL | Signed requests, private network, timeouts, replay protection |
-| n8n → MySQL | Select-style workflow | Read-only account, allowlist, row limits, query audit |
+| Flask → n8n | Header authentication, bounded context, timeouts, no redirects | HTTPS for external services, secret rotation |
+| n8n → MySQL | No connection or tool | Do not add unrestricted model access |
 
 ## Deployment evolution
 

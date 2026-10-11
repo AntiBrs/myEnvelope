@@ -1,0 +1,13 @@
+# Optional overlay. The service-account file stays outside the image and repo.
+services:
+  api:
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/documentai.json
+      DOCUMENTAI_PROJECT_ID: ${DOCUMENTAI_PROJECT_ID:?Set your project id}
+      DOCUMENTAI_LOCATION: ${DOCUMENTAI_LOCATION:-eu}
+      DOCUMENTAI_PROCESSOR_ID: ${DOCUMENTAI_PROCESSOR_ID:?Set your processor id}
+    volumes:
+      - type: bind
+        source: ${DOCUMENTAI_CREDENTIALS_FILE:?Set the absolute path outside the repository}
+        target: /run/secrets/documentai.json
+        read_only: true

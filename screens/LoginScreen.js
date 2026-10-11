@@ -1,3 +1,4 @@
+import { Alert } from '../config/alerts';
 import React, { useState } from 'react';
 import {
   View,
@@ -5,15 +6,14 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   Modal,
   ScrollView,
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from '../config/api';
+import { setToken } from '../config/session';
+import { API_BASE_URL, apiFetch } from '../config/api';
 
 export default function LoginScreen({ navigation }) {
   // Login és regisztrációs mezők állapota
@@ -36,7 +36,7 @@ export default function LoginScreen({ navigation }) {
 
     try {
       const age = new Date().getFullYear() - new Date(dateOfBirth).getFullYear();
-      const response = await fetch(`${API_BASE_URL}/user`, {
+      const response = await apiFetch(`${API_BASE_URL}/user`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -58,7 +58,7 @@ export default function LoginScreen({ navigation }) {
         setName(""); setUsername(""); setPassword("");
         setTelephoneNumber(""); setDateOfBirth(""); setSecureCode("");
       } else {
-        Alert.alert("Error", data.message || "Registration failed");
+        Alert.alert("Error", data.error || data.message || "Registration failed");
       }
     } catch (e) {
       Alert.alert("Error", "Cannot connect to server");
@@ -69,7 +69,7 @@ export default function LoginScreen({ navigation }) {
   const handleLogin = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/login`, {
+      const response = await apiFetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userName: username, password: password }),
@@ -77,16 +77,12 @@ export default function LoginScreen({ navigation }) {
 
       const data = await response.json();
       if (response.ok && data.token) {
-        await AsyncStorage.setItem('userToken', data.token);
-        await AsyncStorage.setItem('userId', String(data.userId));
+        await setToken(data.token);
 
-        navigation.navigate('Home', {
-          username: data.userName,
-          userId: data.userId,
-          apiBaseUrl: API_BASE_URL
-        });
+        setPassword('');
+        navigation.reset({ index: 0, routes: [{ name: 'Home', params: { username: data.userName } }] });
       } else {
-        Alert.alert("Login Failed", data.message || "Invalid credentials");
+        Alert.alert("Login Failed", data.error || data.message || "Invalid credentials");
       }
     } catch (error) {
       Alert.alert("Error", "Network error");
@@ -154,7 +150,7 @@ export default function LoginScreen({ navigation }) {
 
             <View style={styles.formGroup}>
               <Text style={styles.label}>Password</Text>
-              <TextInput style={styles.input} placeholder="********" secureTextEntry value={password} onChangeText={setPassword} />
+              <TextInput style={styles.input} placeholder="At least 12 characters" secureTextEntry value={password} onChangeText={setPassword} />
             </View>
 
             <View style={styles.formGroup}>

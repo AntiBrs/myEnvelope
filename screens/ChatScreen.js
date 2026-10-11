@@ -1,10 +1,11 @@
 import React, { useState, useRef, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getToken } from '../config/session';
+import { API_BASE_URL, apiFetch } from '../config/api';
 
 export default function ChatScreen({ route, navigation }) {
-  const { apiBaseUrl } = route.params;
+  const apiBaseUrl = API_BASE_URL;
 
   // Alapértelmezett fejléc elrejtése
   useLayoutEffect(() => {
@@ -33,18 +34,17 @@ export default function ChatScreen({ route, navigation }) {
     setIsTyping(true);
 
     try {
-      const token = await AsyncStorage.getItem('userToken');
+      const token = await getToken();
       if (!token) {
-        navigation.navigate('Login');
+        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         return;
       }
 
       // API hívás az AI válaszért
-      const response = await fetch(`${apiBaseUrl}/chat`, {
+      const response = await apiFetch(`${apiBaseUrl}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           question: currentInput
@@ -52,11 +52,14 @@ export default function ChatScreen({ route, navigation }) {
       });
 
       if (response.status === 401) {
-        navigation.navigate('Login');
         return;
       }
 
       const data = await response.json();
+      if (!response.ok) {
+        setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: data.error || 'The assistant is unavailable. Please try again later.', sender: 'bot' }]);
+        return;
+      }
 
       // Válasz szöveg kinyerése a különböző lehetséges formátumokból
       let botText = "";
